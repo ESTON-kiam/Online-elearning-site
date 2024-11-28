@@ -1,3 +1,109 @@
+<?php
+session_name('super_admin');
+session_start();
+require_once 'include/database.php';
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    try {
+        $db = new DatabaseConnection();
+        $conn = $db->getConnection();
+
+        if (!$conn) {
+            throw new Exception("Database connection failed");
+        }
+
+       
+        $login_input = $db->sanitizeInput($_POST['username']);
+        $password = $_POST['password'];
+
+      
+        error_log("Login Attempt - Username/Email: " . $login_input);
+
+       
+        $stmt = $conn->prepare("
+            SELECT admin_id, username, email, password, last_login 
+            FROM admin 
+            WHERE (username = ? OR email = ?) AND is_active = 1
+        ");
+
+        if (!$stmt) {
+            throw new Exception("Prepare statement failed: " . $conn->error);
+        }
+
+       
+        $stmt->bind_param("ss", $login_input, $login_input);
+
+       
+        if (!$stmt->execute()) {
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+
+       
+        $result = $stmt->get_result();
+
+        if ($result->num_rows === 1) {
+            $user = $result->fetch_assoc();
+
+            
+            error_log("User Found - ID: " . $user['admin_id']);
+            error_log("Stored Password Hash: " . $user['password']);
+            error_log("Password Input Length: " . strlen($password));
+
+           
+            if (!empty($user['password']) && 
+                (strlen($user['password']) > 20) && 
+                password_verify($password, $user['password'])) {
+                
+              
+                unset($_SESSION['login_error']);
+                
+               
+                $_SESSION['admin_logged_in'] = true;
+                $_SESSION['admin_id'] = $user['admin_id'];
+                $_SESSION['admin_username'] = $user['username'];
+
+                
+                $update_stmt = $conn->prepare("UPDATE admin SET last_login = NOW() WHERE admin_id = ?");
+                $update_stmt->bind_param("i", $user['admin_id']);
+                $update_stmt->execute();
+
+             
+                ob_clean();
+                header("Location: http://localhost:8000/admin/dashboard.php");
+                exit();
+            } else {
+                
+                error_log("Password verification failed for: " . $login_input);
+                error_log("Hash validation failed. Hash length: " . strlen($user['password']));
+                
+                $_SESSION['login_error'] = "Invalid credentials. Please check your password.";
+                header("Location: /admin");
+                exit();
+            }
+        } else {
+            
+            error_log("No user found for: " . $login_input);
+            $_SESSION['login_error'] = "User not found. Please check your credentials.";
+            header("Location: /admin");
+            exit();
+        }
+    } catch (Exception $e) {
+       
+        error_log("Login Error: " . $e->getMessage());
+        $_SESSION['login_error'] = "An unexpected error occurred. Please try again.";
+        header("Location: /admin");
+        exit();
+    } finally {
+        
+        if (isset($stmt)) $stmt->close();
+        if (isset($db)) $db->closeConnection();
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,8 +118,9 @@
         <div class="login-logo">
             <i class="fas fa-lock"></i>
         </div>
-        <h2 class="login-title">Secure Login Portal</h2>
-        <form class="login-form" action="process_login.php" method="POST">
+        <h2 class="login-title">Secure Super Admin Login Portal</h2>
+      
+        <form class="login-form" action="" method="POST">
             <input type="text" name="username" placeholder="Username or Email" required>
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit" class="login-button">Log In</button>
@@ -27,13 +134,13 @@
         </form>
         
         <div class="social-login">
-    <a href="http://localhost:8000/" class="social-button staff-login">
-        <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Return TO Home
-    </a>
-   
-</div>
-        
-        
+            <a href="http://localhost:8000/" class="social-button staff-login">
+                <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Return to Home
+            </a>
+            <a href="http://localhost:8000/admin/Register.php" class="social-button staff-login">
+                <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Register
+            </a>
+        </div>
     </div>
 </body>
 </html>

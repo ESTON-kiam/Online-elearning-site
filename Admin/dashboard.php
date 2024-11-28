@@ -1,14 +1,16 @@
 <?php
+session_name('super_admin');
 session_start();
 
 
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'super_admin') {
-    header("Location: login.php");
+if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
+    header("Location: http://localhost:8000/admin");
     exit();
 }
+$username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Admin';
 
 
-require_once 'config/database.php';
+require_once 'include/database.php';
 
 
 function sanitize_input($data) {
@@ -17,7 +19,7 @@ function sanitize_input($data) {
     $data = htmlspecialchars($data);
     return $data;
 }
-
+ 
 
 if (isset($_POST['add_course'])) {
     $course_title = sanitize_input($_POST['course_title']);
@@ -26,7 +28,7 @@ if (isset($_POST['add_course'])) {
     $course_level = sanitize_input($_POST['course_level']);
     $course_price = floatval($_POST['course_price']);
 
-    $stmt = $pdo->prepare("INSERT INTO courses (title, description, category, level, price, created_at) 
+    $stmt = $pdo->prepare("INSERT INTO courses (title, description, category,  YearOfStudent, price, created_at) 
                             VALUES (?, ?, ?, ?, ?, NOW())");
     $stmt->execute([$course_title, $course_description, $course_category, $course_level, $course_price]);
 }
@@ -46,7 +48,7 @@ if (isset($_POST['add_instructor'])) {
     $stmt->execute([$instructor_name, $instructor_email, $instructor_expertise, $instructor_bio, $password]);
 }
 
-// Handle Course Allocation
+
 if (isset($_POST['allocate_course'])) {
     $course_id = intval($_POST['course_id']);
     $instructor_id = intval($_POST['instructor_id']);
@@ -56,15 +58,15 @@ if (isset($_POST['allocate_course'])) {
     $stmt->execute([$course_id, $instructor_id]);
 }
 
-// Fetch Courses
+
 $courses_stmt = $pdo->query("SELECT * FROM courses ORDER BY created_at DESC");
 $courses = $courses_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch Instructors
+
 $instructors_stmt = $pdo->query("SELECT * FROM instructors ORDER BY created_at DESC");
 $instructors = $instructors_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch Course Allocations
+
 $allocations_stmt = $pdo->query("
     SELECT ci.id, c.title AS course_title, i.name AS instructor_name, ci.allocated_at 
     FROM course_instructors ci
@@ -87,37 +89,30 @@ $course_allocations = $allocations_stmt->fetchAll(PDO::FETCH_ASSOC);
         <header>
             <h1>Super Admin Dashboard</h1>
             <div class="user-info">
-                Welcome, <?php echo htmlspecialchars($_SESSION['admin_name']); ?> 
+                Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?> 
                 <a href="logout.php" class="logout-btn">Logout</a>
             </div>
         </header>
 
         <div class="dashboard-grid">
-            <!-- Add Course Section -->
+           
             <section class="dashboard-section">
                 <h2>Add New Course</h2>
                 <form method="POST" action="">
                     <input type="text" name="course_title" placeholder="Course Title" required>
                     <textarea name="course_description" placeholder="Course Description" required></textarea>
                     <select name="course_category" required>
-                        <option value="">Select Category</option>
-                        <option value="technology">Technology</option>
-                        <option value="business">Business</option>
-                        <option value="design">Design</option>
-                        <option value="personal_development">Personal Development</option>
+                       
                     </select>
                     <select name="course_level" required>
-                        <option value="">Select Level</option>
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
+                       
                     </select>
                     <input type="number" name="course_price" step="0.01" placeholder="Course Price" required>
                     <button type="submit" name="add_course">Add Course</button>
                 </form>
             </section>
 
-            <!-- Add Instructor Section -->
+           
             <section class="dashboard-section">
                 <h2>Add New Instructor</h2>
                 <form method="POST" action="">
@@ -130,7 +125,7 @@ $course_allocations = $allocations_stmt->fetchAll(PDO::FETCH_ASSOC);
                 </form>
             </section>
 
-            <!-- Course Allocation Section -->
+           
             <section class="dashboard-section">
                 <h2>Allocate Course to Instructor</h2>
                 <form method="POST" action="">
@@ -154,7 +149,7 @@ $course_allocations = $allocations_stmt->fetchAll(PDO::FETCH_ASSOC);
                 </form>
             </section>
 
-            <!-- Course List Section -->
+            
             <section class="dashboard-section">
                 <h2>Existing Courses</h2>
                 <table>
@@ -181,7 +176,7 @@ $course_allocations = $allocations_stmt->fetchAll(PDO::FETCH_ASSOC);
                 </table>
             </section>
 
-            <!-- Instructor List Section -->
+           
             <section class="dashboard-section">
                 <h2>Instructors</h2>
                 <table>

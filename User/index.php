@@ -12,7 +12,7 @@
         <div class="login-logo">
             <i class="fas fa-lock"></i>
         </div>
-        <h2 class="login-title">Secure Login Portal</h2>
+        <h2 class="login-title">Secure Student Login Portal</h2>
         <form class="login-form" action="process_login.php" method="POST">
             <input type="text" name="username" placeholder="Username or Email" required>
             <input type="password" name="password" placeholder="Password" required>

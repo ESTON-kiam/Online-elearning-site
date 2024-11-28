@@ -3,7 +3,7 @@ USE elearning_platform;
 
 
 CREATE TABLE admin (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -19,7 +19,11 @@ CREATE TABLE courses (
     title VARCHAR(255) NOT NULL,
     description TEXT,
    YearOfStudent ENUM('1', '2', '3', '4'),
-
+ categories (category_name) VALUES
+('SCHOOL OF CO-OPERATIVES AND COMMUNITY DEVELOPMENT'),
+('SCHOOL OF BUSINESS AND ECONOMICS'),
+('SCHOOL OF COMPUTING AND MATHEMATICS'),
+('SCHOOL OF NURSING'),
     price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -40,15 +44,7 @@ CREATE TABLE instructors (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-CREATE TABLE students (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(20)
-);
+
 
 
 CREATE TABLE course_instructors (
@@ -59,6 +55,25 @@ CREATE TABLE course_instructors (
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
     FOREIGN KEY (instructor_id) REFERENCES instructors(id) ON DELETE CASCADE,
     UNIQUE KEY unique_course_instructor (course_id, instructor_id)
+);
+
+CREATE TABLE students (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20)
+);
+CREATE TABLE admin_remember_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_id INT NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    FOREIGN KEY (admin_id) REFERENCES admin(admin_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 
