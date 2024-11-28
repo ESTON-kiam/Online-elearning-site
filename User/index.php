@@ -27,14 +27,11 @@
         </form>
         
         <div class="social-login">
-    <a href="Instructors" class="social-button staff-login">
-        <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Instructors Login
+    <a href="http://localhost:8000/" class="social-button staff-login">
+        <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Return TO Home
     </a>
-    <a href="User" class="social-button student-login">
-        <i class="fas fa-graduation-cap" style="margin-right: 10px;"></i>Student Login
-    </a>
+   
 </div>
-
         
        
     </div>

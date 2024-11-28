@@ -7,9 +7,6 @@
             --text-light: #ecf0f1;
             --shadow-elegant: 0 10px 25px rgba(0,0,0,0.1);
         }
-        a{
-            text-decoration: none;
-        }
 
         * {
             margin: 0;
