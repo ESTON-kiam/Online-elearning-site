@@ -1,10 +1,16 @@
 <?php
 session_name('super_admin');
 session_start();
+
 require_once 'include/database.php';
+
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
+
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
@@ -19,12 +25,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $login_input = $db->sanitizeInput($_POST['username']);
         $password = $_POST['password'];
 
-      
-        error_log("Login Attempt - Username/Email: " . $login_input);
-
        
+        $ip_address = $_SERVER['REMOTE_ADDR'];
+        $cache_key = "login_attempts_{$ip_address}";
+
+        
+        if (isset($_SESSION[$cache_key]['lockout_until']) && 
+            time() < $_SESSION[$cache_key]['lockout_until']) {
+            error_log("Login attempt during lockout - IP: {$ip_address}");
+            $_SESSION['login_error'] = "Too many failed attempts. Please try again later.";
+            header("Location: index.php");
+            exit();
+        }
+
+      
         $stmt = $conn->prepare("
-            SELECT admin_id, username, email, password, last_login 
+            SELECT admin_id, username, email, password, last_login, profile_image 
             FROM admin 
             WHERE (username = ? OR email = ?) AND is_active = 1
         ");
@@ -33,65 +49,71 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("Prepare statement failed: " . $conn->error);
         }
 
-       
         $stmt->bind_param("ss", $login_input, $login_input);
 
-       
         if (!$stmt->execute()) {
             throw new Exception("Execute failed: " . $stmt->error);
         }
 
-       
         $result = $stmt->get_result();
 
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
 
-            
-            error_log("User Found - ID: " . $user['admin_id']);
-            error_log("Stored Password Hash: " . $user['password']);
-            error_log("Password Input Length: " . strlen($password));
-
-           
-            if (!empty($user['password']) && 
-                (strlen($user['password']) > 20) && 
+         
+            if (!empty($user['password']) &&
+                (strlen($user['password']) > 20) &&
                 password_verify($password, $user['password'])) {
                 
-              
-                unset($_SESSION['login_error']);
                 
-               
+                unset($_SESSION[$cache_key]);
+                unset($_SESSION['login_error']);
+
+             
                 $_SESSION['admin_logged_in'] = true;
                 $_SESSION['admin_id'] = $user['admin_id'];
                 $_SESSION['admin_username'] = $user['username'];
+                $_SESSION['profile_image'] = $user['profile_image'] ?? 'default.png';
 
-                
+              
                 $update_stmt = $conn->prepare("UPDATE admin SET last_login = NOW() WHERE admin_id = ?");
                 $update_stmt->bind_param("i", $user['admin_id']);
                 $update_stmt->execute();
 
-             
-                ob_clean();
+                error_log("Successful Login - Redirecting User ID: " . $user['admin_id']);
                 header("Location: http://localhost:8000/admin/dashboard.php");
                 exit();
             } else {
                 
                 error_log("Password verification failed for: " . $login_input);
-                error_log("Hash validation failed. Hash length: " . strlen($user['password']));
                 
+                
+                if (!isset($_SESSION[$cache_key])) {
+                    $_SESSION[$cache_key] = [
+                        'attempts' => 1,
+                        'first_attempt' => time()
+                    ];
+                } else {
+                    $_SESSION[$cache_key]['attempts']++;
+                }
+
+                
+                if ($_SESSION[$cache_key]['attempts'] >= MAX_LOGIN_ATTEMPTS) {
+                    $_SESSION[$cache_key]['lockout_until'] = time() + LOCKOUT_DURATION;
+                    error_log("IP Locked Out - Address: {$ip_address}");
+                }
+
                 $_SESSION['login_error'] = "Invalid credentials. Please check your password.";
                 header("Location: /admin");
                 exit();
             }
         } else {
-            
             error_log("No user found for: " . $login_input);
             $_SESSION['login_error'] = "User not found. Please check your credentials.";
             header("Location: /admin");
             exit();
         }
     } catch (Exception $e) {
-       
         error_log("Login Error: " . $e->getMessage());
         $_SESSION['login_error'] = "An unexpected error occurred. Please try again.";
         header("Location: /admin");
@@ -99,6 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } finally {
         
         if (isset($stmt)) $stmt->close();
+        if (isset($update_stmt)) $update_stmt->close();
         if (isset($db)) $db->closeConnection();
     }
 }

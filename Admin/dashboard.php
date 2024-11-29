@@ -2,234 +2,99 @@
 session_name('super_admin');
 session_start();
 
-
-if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-    header("Location: http://localhost:8000/admin");
-    exit();
-}
-$username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Admin';
-
-
 require_once 'include/database.php';
 
-
-function sanitize_input($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}
- 
-
-if (isset($_POST['add_course'])) {
-    $course_title = sanitize_input($_POST['course_title']);
-    $course_description = sanitize_input($_POST['course_description']);
-    $course_category = sanitize_input($_POST['course_category']);
-    $course_level = sanitize_input($_POST['course_level']);
-    $course_price = floatval($_POST['course_price']);
-
-    $stmt = $pdo->prepare("INSERT INTO courses (title, description, category,  YearOfStudent, price, created_at) 
-                            VALUES (?, ?, ?, ?, ?, NOW())");
-    $stmt->execute([$course_title, $course_description, $course_category, $course_level, $course_price]);
+if (!isset($_SESSION['admin_id'])) {
+    header('Location: /admin');
+    exit();
 }
 
+$instructors_query = "SELECT COUNT(*) as total_instructors FROM instructors";
+$courses_query = "SELECT COUNT(*) as total_courses FROM courses";
+$allocated_courses_query = "SELECT COUNT(*) as total_allocated FROM course_instructors";
 
-if (isset($_POST['add_instructor'])) {
-    $instructor_name = sanitize_input($_POST['instructor_name']);
-    $instructor_email = filter_var($_POST['instructor_email'], FILTER_VALIDATE_EMAIL);
-    $instructor_expertise = sanitize_input($_POST['instructor_expertise']);
-    $instructor_bio = sanitize_input($_POST['instructor_bio']);
+$instructors_result = mysqli_query($conn, $instructors_query);
+$courses_result = mysqli_query($conn, $courses_query);
+$allocated_result = mysqli_query($conn, $allocated_courses_query);
 
-    
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
-
-    $stmt = $pdo->prepare("INSERT INTO instructors (name, email, expertise, bio, password, created_at) 
-                            VALUES (?, ?, ?, ?, ?, NOW())");
-    $stmt->execute([$instructor_name, $instructor_email, $instructor_expertise, $instructor_bio, $password]);
-}
-
-
-if (isset($_POST['allocate_course'])) {
-    $course_id = intval($_POST['course_id']);
-    $instructor_id = intval($_POST['instructor_id']);
-
-    $stmt = $pdo->prepare("INSERT INTO course_instructors (course_id, instructor_id, allocated_at) 
-                            VALUES (?, ?, NOW())");
-    $stmt->execute([$course_id, $instructor_id]);
-}
-
-
-$courses_stmt = $pdo->query("SELECT * FROM courses ORDER BY created_at DESC");
-$courses = $courses_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-
-$instructors_stmt = $pdo->query("SELECT * FROM instructors ORDER BY created_at DESC");
-$instructors = $instructors_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-
-$allocations_stmt = $pdo->query("
-    SELECT ci.id, c.title AS course_title, i.name AS instructor_name, ci.allocated_at 
-    FROM course_instructors ci
-    JOIN courses c ON ci.course_id = c.id
-    JOIN instructors i ON ci.instructor_id = i.id
-    ORDER BY ci.allocated_at DESC
-");
-$course_allocations = $allocations_stmt->fetchAll(PDO::FETCH_ASSOC);
+$total_instructors = mysqli_fetch_assoc($instructors_result)['total_instructors'];
+$total_courses = mysqli_fetch_assoc($courses_result)['total_courses'];
+$total_allocated = mysqli_fetch_assoc($allocated_result)['total_allocated'];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Super Admin Dashboard - E-Learning Platform</title>
+    <title>Admin Dashboard</title>
     <link rel="stylesheet" href="assets/css/dash.css">
 </head>
 <body>
-    <div class="dashboard-container">
-        <header>
-            <h1>Super Admin Dashboard</h1>
-            <div class="user-info">
-                Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?> 
-                <a href="logout.php" class="logout-btn">Logout</a>
-            </div>
-        </header>
-
-        <div class="dashboard-grid">
-           
-            <section class="dashboard-section">
-                <h2>Add New Course</h2>
-                <form method="POST" action="">
-                    <input type="text" name="course_title" placeholder="Course Title" required>
-                    <textarea name="course_description" placeholder="Course Description" required></textarea>
-                    <select name="course_category" required>
-                       
-                    </select>
-                    <select name="course_level" required>
-                       
-                    </select>
-                    <input type="number" name="course_price" step="0.01" placeholder="Course Price" required>
-                    <button type="submit" name="add_course">Add Course</button>
-                </form>
-            </section>
-
-           
-            <section class="dashboard-section">
-                <h2>Add New Instructor</h2>
-                <form method="POST" action="">
-                    <input type="text" name="instructor_name" placeholder="Instructor Name" required>
-                    <input type="email" name="instructor_email" placeholder="Email" required>
-                    <input type="password" name="password" placeholder="Initial Password" required>
-                    <input type="text" name="instructor_expertise" placeholder="Area of Expertise" required>
-                    <textarea name="instructor_bio" placeholder="Instructor Biography" required></textarea>
-                    <button type="submit" name="add_instructor">Add Instructor</button>
-                </form>
-            </section>
-
-           
-            <section class="dashboard-section">
-                <h2>Allocate Course to Instructor</h2>
-                <form method="POST" action="">
-                    <select name="course_id" required>
-                        <option value="">Select Course</option>
-                        <?php foreach($courses as $course): ?>
-                            <option value="<?php echo $course['id']; ?>">
-                                <?php echo htmlspecialchars($course['title']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <select name="instructor_id" required>
-                        <option value="">Select Instructor</option>
-                        <?php foreach($instructors as $instructor): ?>
-                            <option value="<?php echo $instructor['id']; ?>">
-                                <?php echo htmlspecialchars($instructor['name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="submit" name="allocate_course">Allocate Course</button>
-                </form>
-            </section>
-
-            
-            <section class="dashboard-section">
-                <h2>Existing Courses</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Level</th>
-                            <th>Price</th>
-                            <th>Created At</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach($courses as $course): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($course['title']); ?></td>
-                                <td><?php echo htmlspecialchars($course['category']); ?></td>
-                                <td><?php echo htmlspecialchars($course['level']); ?></td>
-                                <td>$<?php echo number_format($course['price'], 2); ?></td>
-                                <td><?php echo date('d M Y', strtotime($course['created_at'])); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </section>
-
-           
-            <section class="dashboard-section">
-                <h2>Instructors</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Expertise</th>
-                            <th>Created At</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach($instructors as $instructor): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($instructor['name']); ?></td>
-                                <td><?php echo htmlspecialchars($instructor['email']); ?></td>
-                                <td><?php echo htmlspecialchars($instructor['expertise']); ?></td>
-                                <td><?php echo date('d M Y', strtotime($instructor['created_at'])); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </section>
-
-            <!-- Course Allocation List Section -->
-            <section class="dashboard-section">
-                <h2>Course Allocations</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Course</th>
-                            <th>Instructor</th>
-                            <th>Allocated At</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach($course_allocations as $allocation): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($allocation['course_title']); ?></td>
-                                <td><?php echo htmlspecialchars($allocation['instructor_name']); ?></td>
-                                <td><?php echo date('d M Y H:i', strtotime($allocation['allocated_at'])); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </section>
+  
+    <header>
+        <div class="logo">
+            <h1>E-Learning Platform</h1>
         </div>
+        <div class="profile-dropdown">
+            <div class="profile-icon">
+                <img src="<?php echo $_SESSION['profile_image'] ?? 'assets/images/default-profile.png'; ?>" alt="Profile">
+                <span><?php echo $_SESSION['admin_username']; ?></span>
 
-        <footer>
-            <p>&copy; <?php echo date('Y'); ?> E-Learning Platform. All Rights Reserved.</p>
-        </footer>
+            </div>
+            <div class="dropdown-content">
+                <a href="profile.php">My Profile</a>
+                <a href="change_password.php">Change Password</a>
+                <a href="logout.php">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        
+        <aside class="sidebar">
+            <nav>
+                <ul>
+                    <li>
+                        <a href="dashboard.php" >Dashboard</a>
+                        <a href="#" class="dropdown-toggle">Courses</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="add_course.php">Add New Course</a></li>
+                            <li><a href="manage_courses.php">Manage Courses</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" class="dropdown-toggle">Instructors</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="add_instructor.php">Add New Instructor</a></li>
+                            <li><a href="manage_instructors.php">Manage Instructors</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="allocate_courses.php">Allocate Courses</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        
+        <main class="main-content">
+            <div class="dashboard-cards">
+                <div class="card instructors">
+                    <h3>Total Instructors</h3>
+                    <p><?php echo $total_instructors; ?></p>
+                </div>
+                <div class="card courses">
+                    <h3>Total Courses</h3>
+                    <p><?php echo $total_courses; ?></p>
+                </div>
+                <div class="card allocated-courses">
+                    <h3>Allocated Courses</h3>
+                    <p><?php echo $total_allocated; ?></p>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <script src="assets/js/admin.js"></script>
+    <script src="assets/js/dashboard.js"></script>
 </body>
 </html>
