@@ -56,13 +56,16 @@ $total_allocated = mysqli_fetch_assoc($allocated_result)['total_allocated'];
                 <ul>
                     <li>
                         <a href="dashboard.php" >Dashboard</a>
+                        <a href="Register.php" > Add Super Admin</a>
                         <a href="#" class="dropdown-toggle">Courses</a>
                         <ul class="dropdown-menu">
                             <li><a href="add_course.php">Add New Course</a></li>
                             <li><a href="manage_courses.php">Manage Courses</a></li>
                         </ul>
                     </li>
+                    
                     <li>
+                    
                         <a href="#" class="dropdown-toggle">Instructors</a>
                         <ul class="dropdown-menu">
                             <li><a href="add_instructor.php">Add New Instructor</a></li>

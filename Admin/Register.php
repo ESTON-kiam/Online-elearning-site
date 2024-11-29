@@ -1,6 +1,13 @@
 <?php
+session_name('super_admin');
 session_start();
+
 require_once 'include/database.php';
+
+if (!isset($_SESSION['admin_id'])) {
+    header('Location: /admin');
+    exit();
+}
 
 
 error_reporting(E_ALL);
@@ -92,7 +99,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt->execute()) {
             
             $_SESSION['registration_success'] = "Admin account created successfully!";
-            header("Location: http://localhost:8000/admin");
+            header("Location: http://localhost:8000/admin/dashboard.php");
             exit();
         } else {
            
