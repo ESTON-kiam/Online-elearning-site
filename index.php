@@ -12,20 +12,8 @@
         <div class="login-logo">
             <i class="fas fa-lock"></i>
         </div>
-        <h2 class="login-title">Secure Student Login Portal</h2>
-        <form class="login-form" action="process_login.php" method="POST">
-            <input type="text" name="username" placeholder="Username or Email" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit" class="login-button">Log In</button>
-            
-            <div class="login-extras">
-                <label>
-                    <input type="checkbox" name="remember"> Remember me
-                </label>
-                <a href="#" style="color: var(--secondary-color);">Forgot Password?</a>
-            </div>
-        </form>
-        
+        <h2 class="login-title">Secure Login Portal</h2>
+       
         <div class="social-login">
     <a href="Instructors" class="social-button staff-login">
         <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Instructors Login

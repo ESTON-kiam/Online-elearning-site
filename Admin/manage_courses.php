@@ -37,7 +37,8 @@ if (isset($_POST['edit_id'])) {
     $is_active = isset($_POST['is_active']) ? 1 : 0;
 
     $stmt = $conn->prepare("UPDATE courses SET title = ?, description = ?, YearOfStudent = ?, category = ?, price = ?, is_active = ? WHERE id = ?");
-    $stmt->bind_param("ssssid", $title, $description, $year_of_student, $category, $price, $is_active, $course_id);
+$stmt->bind_param("ssssdis", $title, $description, $year_of_student, $category, $price, $is_active, $course_id);
+
 
     if ($stmt->execute()) {
         $success_message = "Course updated successfully.";
@@ -162,73 +163,75 @@ $database->closeConnection();
                 </tr>
             </thead>
             <tbody>
-                <?php
-                while ($row = $result->fetch_assoc()) {
-                    echo "<tr>";
-                    echo "<td>" . htmlspecialchars($row['title']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['YearOfStudent']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['category']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['price']) . "</td>";
-                    echo "<td>" . ($row['is_active'] ? 'Yes' : 'No') . "</td>";
-                    echo "<td>
-                            <a href='#' class='btn btn-edit' onclick='editCourse(" . $row['id'] . ", \"" . addslashes($row['title']) . "\", \"" . addslashes($row['description']) . "\", \"" . addslashes($row['category']) . "\", " . $row['YearOfStudent'] . ", " . $row['price'] . ", " . $row['is_active'] . ")'>Edit</a>
-                            <a href='?delete_id=" . $row['id'] . "' class='btn btn-delete' onclick='return confirm(\"Are you sure you want to delete this course?\")'>Delete</a>
-                        </td>";
-                    echo "</tr>";
-                }
-                ?>
-            </tbody>
+    <?php
+    while ($row = $result->fetch_assoc()) {
+        echo "<tr>";
+        echo "<td>" . htmlspecialchars($row['title']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['YearOfStudent']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['category']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['price']) . "</td>";
+        echo "<td>" . ($row['is_active'] ? 'Yes' : 'No') . "</td>";
+        echo "<td>
+                <div style='display: flex; justify-content: space-between;'>
+                    <a href='#' class='btn btn-edit' onclick='editCourse(" . $row['id'] . ", \"" . addslashes($row['title']) . "\", \"" . addslashes($row['description']) . "\", \"" . addslashes($row['category']) . "\", " . $row['YearOfStudent'] . ", " . $row['price'] . ", " . $row['is_active'] . ")'>Edit</a>
+                    <a href='?delete_id=" . $row['id'] . "' class='btn btn-delete' onclick='return confirm(\"Are you sure you want to delete this course?\")'>Delete</a>
+                </div>
+            </td>";
+        echo "</tr>";
+    }
+    ?>
+</tbody>
+
         </table>
 
        
         <div id="editModal" style="display:none; background: rgba(0, 0, 0, 0.7); position: fixed; top: 0; left: 0; right: 0; bottom: 0; justify-content: center; align-items: center;">
-            <div style="background: white; padding: 20px; max-width: 500px; margin: 100px auto; border-radius: 8px;">
-                <h2>Edit Course</h2>
-                <form id="editCourseForm" method="POST">
-                    <input type="hidden" name="edit_id" id="edit_id" />
-                    <div>
-                        <label for="edit_title">Course Title:</label>
-                        <input type="text" id="edit_title" name="title" required />
-                    </div>
-                    <div>
-                        <label for="edit_description">Description:</label>
-                        <textarea id="edit_description" name="description"></textarea>
-                    </div>
-                    <div>
-                        <label for="edit_year_of_student">Year of Student:</label>
-                        <select id="edit_year_of_student" name="year_of_student" required>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="edit_category">Category:</label>
-                        <select id="edit_category" name="category" required>
-                            <option value="SCHOOL OF CO-OPERATIVES AND COMMUNITY DEVELOPMENT">School of Co-operatives and Community Development</option>
-                            <option value="SCHOOL OF BUSINESS AND ECONOMICS">School of Business and Economics</option>
-                            <option value="SCHOOL OF COMPUTING AND MATHEMATICS">School of Computing and Mathematics</option>
-                            <option value="SCHOOL OF NURSING">School of Nursing</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="edit_price">Price:</label>
-                        <input type="number" id="edit_price" name="price" step="0.01" min="0" required />
-                    </div>
-                    <div>
-                        <label for="edit_is_active">Active Course:</label>
-                        <input type="checkbox" id="edit_is_active" name="is_active" value="1" />
-                    </div>
-                    <div>
-                        <button type="submit">Save Changes</button>
-                        <button type="button" onclick="closeEditModal()">Cancel</button>
-                    </div>
-                </form>
+    <div style="background: white; padding: 20px; max-width: 500px; margin: 100px auto; border-radius: 8px;">
+        <h2 style="text-align: center;">Edit Course</h2>
+        <form id="editCourseForm" method="POST">
+            <input type="hidden" name="edit_id" id="edit_id" />
+            <div style="margin-bottom: 15px;">
+                <label for="edit_title" style="display: block;">Course Title:</label>
+                <input type="text" id="edit_title" name="title" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;" />
             </div>
-        </div>
-
+            <div style="margin-bottom: 15px;">
+                <label for="edit_description" style="display: block;">Description:</label>
+                <textarea id="edit_description" name="description" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></textarea>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="edit_year_of_student" style="display: block;">Year of Student:</label>
+                <select id="edit_year_of_student" name="year_of_student" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="edit_category" style="display: block;">Category:</label>
+                <select id="edit_category" name="category" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="SCHOOL OF CO-OPERATIVES AND COMMUNITY DEVELOPMENT">School of Co-operatives and Community Development</option>
+                    <option value="SCHOOL OF BUSINESS AND ECONOMICS">School of Business and Economics</option>
+                    <option value="SCHOOL OF COMPUTING AND MATHEMATICS">School of Computing and Mathematics</option>
+                    <option value="SCHOOL OF NURSING">School of Nursing</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="edit_price" style="display: block;">Price:</label>
+                <input type="number" id="edit_price" name="price" step="0.01" min="0" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="edit_is_active" style="display: block;">Active Course:</label>
+                <input type="checkbox" id="edit_is_active" name="is_active" value="1" />
+            </div>
+            <div style="text-align: center;">
+                <button type="submit" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Changes</button>
+                <button type="button" onclick="closeEditModal()" style="padding: 10px 20px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+            </div>
+        </form>
     </div>
+</div>
+
 
     <script>
         function editCourse(id, title, description, category, year, price, is_active) {

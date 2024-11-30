@@ -1,7 +1,6 @@
 <?php
 session_name('super_admin');
 session_start();
-
 require_once 'include/database.php';
 
 if (!isset($_SESSION['admin_id'])) {

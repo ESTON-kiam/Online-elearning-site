@@ -2,7 +2,7 @@
 session_name('super_admin');
 session_start();
 
-require_once 'include/database.php'; // Ensure this path is correct
+require_once 'include/database.php'; 
 
 if (!isset($_SESSION['admin_id'])) {
     header('Location: /admin');
@@ -10,10 +10,10 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $database = new DatabaseConnection(); // Create an instance of the DatabaseConnection class
-    $conn = $database->getConnection(); // Get the connection
+    $database = new DatabaseConnection(); 
+    $conn = $database->getConnection(); 
 
-    // Retrieve and sanitize inputs
+    
     $title = $database->sanitizeInput($_POST['title']);
     $description = $database->sanitizeInput($_POST['description']);
     $year_of_student = $database->sanitizeInput($_POST['year_of_student']);
@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (empty($errors)) {
         try {
-            // Prepare SQL statement
+            
             $stmt = $conn->prepare("INSERT INTO courses (title, description, YearOfStudent, category, price, is_active) 
                                     VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->bind_param("ssssid", $title, $description, $year_of_student, $category, $price, $is_active);
@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $errors[] = "Failed to add course.";
             }
 
-            $stmt->close(); // Close the prepared statement
+            $stmt->close(); 
         } catch (Exception $e) {
             $errors[] = "Database error: " . $e->getMessage();
         }

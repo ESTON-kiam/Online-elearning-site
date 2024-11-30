@@ -138,7 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2 class="registration-title">Admin Registration</h2>
 
         <?php
-        // Display error messages
+        
         if (isset($_SESSION['registration_error'])) {
             echo '<div class="error-message">' . 
                  htmlspecialchars($_SESSION['registration_error']) . 
