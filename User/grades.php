@@ -1,3 +1,76 @@
+<?php
+session_name('student_session');
+session_start();
+
+if (!isset($_SESSION['student_id'])) {
+    header("Location: http://localhost:8000/User/");
+    exit();
+}
+
+require_once 'include/database.php';
+
+$student_id = $_SESSION['student_id'];
+$student_query = "SELECT * FROM students WHERE id = ?";
+$stmt = $conn->prepare($student_query);
+$stmt->bind_param("i", $student_id);
+$stmt->execute();
+$student_result = $stmt->get_result();
+$student = $student_result->fetch_assoc();
+
+
+$enrolled_courses_query = "
+    SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name
+    FROM courses c
+    JOIN enrollments e ON c.id = e.course_id
+    JOIN course_instructors ci ON c.id = ci.course_id
+    JOIN instructors i ON ci.instructor_id = i.id
+    WHERE e.student_id = ? AND c.is_active = 1";
+$stmt = $conn->prepare($enrolled_courses_query);
+$stmt->bind_param("i", $student_id);
+$stmt->execute();
+$enrolled_courses_result = $stmt->get_result();
+
+
+$available_courses_query = "
+    SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name
+    FROM courses c
+    JOIN course_instructors ci ON c.id = ci.course_id
+    JOIN instructors i ON ci.instructor_id = i.id
+    WHERE c.is_active = 1 AND c.id NOT IN (
+        SELECT course_id FROM enrollments WHERE student_id = ?
+    )";
+
+
+function calculateGradePercentage($obtained_marks, $total_marks) {
+    return ($total_marks > 0) ? round(($obtained_marks / $total_marks) * 100, 2) : 0;
+}
+
+
+$courses_query = "
+    SELECT 
+        c.id AS course_id, 
+        c.title AS course_title,
+        SUM(ss.obtained_marks) AS total_obtained_marks,
+        SUM(ca.total_marks) AS total_course_marks
+    FROM 
+        courses c
+    JOIN 
+        enrollments e ON c.id = e.course_id
+    JOIN 
+        course_activities ca ON c.id = ca.course_id
+    LEFT JOIN 
+        student_submissions ss ON ca.id = ss.activity_id AND e.student_id = ss.student_id
+    WHERE 
+        e.student_id = ?
+    GROUP BY 
+        c.id, c.title
+";
+
+$stmt = $conn->prepare($courses_query);
+$stmt->bind_param("i", $student_id);
+$stmt->execute();
+$courses_result = $stmt->get_result();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,49 +94,7 @@
     </style>
 </head>
 <body>
-<?php
-session_start();
 
-if (!isset($_SESSION['student_id'])) {
-    header("Location: /User");
-    exit();
-}
-
-require_once 'include/database.php';
-
-$student_id = $_SESSION['student_id'];
-
-
-function calculateGradePercentage($obtained_marks, $total_marks) {
-    return ($total_marks > 0) ? round(($obtained_marks / $total_marks) * 100, 2) : 0;
-}
-
-
-$courses_query = "
-    SELECT 
-        c.id AS course_id, 
-        c.title AS course_title,
-        SUM(IFNULL(ss.marks, 0)) AS total_obtained_marks,
-        SUM(ca.total_marks) AS total_course_marks
-    FROM 
-        courses c
-    JOIN 
-        enrollments e ON c.id = e.course_id
-    JOIN 
-        course_activities ca ON c.id = ca.course_id
-    LEFT JOIN 
-        student_submissions ss ON ca.id = ss.activity_id AND e.student_id = ss.student_id
-    WHERE 
-        e.student_id = ?
-    GROUP BY 
-        c.id, c.title
-";
-
-$stmt = $conn->prepare($courses_query);
-$stmt->bind_param("i", $student_id);
-$stmt->execute();
-$courses_result = $stmt->get_result();
-?>
 
 <div class="grades-header text-center mb-4">
     <div class="container">
@@ -137,7 +168,7 @@ $courses_result = $stmt->get_result();
                                 $activities_query = "
                                     SELECT 
                                         ca.title,
-                                        IFNULL(MAX(ss.marks), 0) AS max_marks,
+                                        MAX(ss.obtained_marks) AS max_marks,
                                         ca.total_marks
                                     FROM 
                                         course_activities ca
@@ -162,7 +193,7 @@ $courses_result = $stmt->get_result();
                                 ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($activity['title']); ?></td>
-                                        <td><?php echo number_format($activity['max_marks'], 2); ?></td>
+                                        <td><?php echo number_format($activity['max_marks'] ?? 0, 2); ?></td>
                                         <td><?php echo number_format($activity['total_marks'], 2); ?></td>
                                         <td>
                                             <div class="progress">

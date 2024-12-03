@@ -1,4 +1,15 @@
 <?php
+
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require 'PHPMailer/PHPMailer/src/Exception.php';
+require 'PHPMailer/PHPMailer/src/PHPMailer.php';
+require 'PHPMailer/PHPMailer/src/SMTP.php';
+
+
+require 'vendor/autoload.php';
 session_name('student_session');
 session_start();
 
@@ -9,13 +20,14 @@ if (!isset($_SESSION['student_id'])) {
 
 require_once 'include/database.php';
 
+
 $student_id = $_SESSION['student_id'];
 
-// Check if the student is already enrolled in a course
+
 if (isset($_GET['course_id'])) {
     $course_id = $_GET['course_id'];
 
-    // Check if the student is already enrolled
+    
     $check_enrollment_query = "SELECT * FROM enrollments WHERE student_id = ? AND course_id = ?";
     $stmt = $conn->prepare($check_enrollment_query);
     $stmt->bind_param("ii", $student_id, $course_id);
@@ -23,10 +35,10 @@ if (isset($_GET['course_id'])) {
     $enrollment_result = $stmt->get_result();
 
     if ($enrollment_result->num_rows > 0) {
-        // Student is already enrolled
+       
         $message = "You are already enrolled in this course!";
     } else {
-        // Enroll the student in the course
+       
         $enrollment_query = "INSERT INTO enrollments (student_id, course_id) VALUES (?, ?)";
         $stmt = $conn->prepare($enrollment_query);
         $stmt->bind_param("ii", $student_id, $course_id);
@@ -34,6 +46,54 @@ if (isset($_GET['course_id'])) {
 
         if ($stmt->affected_rows > 0) {
             $message = "Successfully enrolled in the course!";
+
+            
+            $student_query = "SELECT * FROM students WHERE id = ?";
+            $stmt = $conn->prepare($student_query);
+            $stmt->bind_param("i", $student_id);
+            $stmt->execute();
+            $student_result = $stmt->get_result();
+            $student = $student_result->fetch_assoc();
+
+            
+            $course_query = "SELECT * FROM courses WHERE id = ?";
+            $stmt = $conn->prepare($course_query);
+            $stmt->bind_param("i", $course_id);
+            $stmt->execute();
+            $course_result = $stmt->get_result();
+            $course = $course_result->fetch_assoc();
+
+           
+            $mail = new PHPMailer(true);
+            try {
+                
+                $mail->isSMTP();
+                $mail->Host       = 'smtp.gmail.com';                   
+            $mail->SMTPAuth   = true;                                
+            $mail->Username   = 'engestonbrandon@gmail.com';            
+            $mail->Password   = 'dsth izzm npjl qebi';                    
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;     
+            $mail->Port       = 587; 
+
+               
+                $mail->setFrom('your-email@gmail.com', 'Course Enrollment');
+                $mail->addAddress($student['email'], $student['username']); 
+
+             
+                $mail->isHTML(true);
+                $mail->Subject = 'Course Enrollment Confirmation';
+                $mail->Body    = "<h1>Enrollment Successful</h1>
+                                  <p>Hello, " . htmlspecialchars($student['username']) . ",</p>
+                                  <p>You have successfully enrolled in the course: <strong>" . htmlspecialchars($course['title']) . "</strong></p>
+                                 
+                                  <p><strong>Course Description:</strong> " . htmlspecialchars($course['description']) . "</p>
+                                  <p><strong>Price:</strong> KES " . number_format($course['price'], 2) . "</p>
+                                  <p>Thank you for choosing our platform for your learning journey!</p>";
+
+                $mail->send();
+            } catch (Exception $e) {
+                $message = "There was an error sending the email: " . $mail->ErrorInfo;
+            }
         } else {
             $message = "There was an error enrolling in the course.";
         }
@@ -42,22 +102,19 @@ if (isset($_GET['course_id'])) {
     $message = "No course selected.";
 }
 
-// Fetch student details
-$student_query = "SELECT * FROM students WHERE id = ?";
-$stmt = $conn->prepare($student_query);
-$stmt->bind_param("i", $student_id);
-$stmt->execute();
-$student_result = $stmt->get_result();
-$student = $student_result->fetch_assoc();
 
-// Fetch available courses
 $courses_query = "
-    SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name
+    SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name,
+    (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id) AS enrolled_count
     FROM courses c
     JOIN course_instructors ci ON c.id = ci.course_id
     JOIN instructors i ON ci.instructor_id = i.id
-    WHERE c.is_active = 1";
-$courses_result = $conn->query($courses_query);
+    WHERE c.is_active = 1 AND 
+    c.id NOT IN (SELECT course_id FROM enrollments WHERE student_id = ?)";
+$stmt = $conn->prepare($courses_query);
+$stmt->bind_param("i", $student_id);
+$stmt->execute();
+$courses_result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -65,13 +122,13 @@ $courses_result = $conn->query($courses_query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard</title>
+    <title>Course Enrollment</title>
 
-    <!-- Bootstrap CSS -->
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-       /* General Styles */
+     
 body {
     font-family: 'Arial', sans-serif;
     background-color: #f8f9fa;
@@ -112,6 +169,7 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    position: relative;
 }
 
 .course-card:hover {
@@ -163,6 +221,16 @@ body {
     background-color: #218838;
 }
 
+.enrolled-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #28a745;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+
 /* Alert Message */
 .alert-info {
     background-color: #17a2b8;
@@ -188,17 +256,15 @@ body {
         width: 100%;
     }
 }
-
     </style>
 </head>
 
 <body>
-    <!-- Sidebar and other content -->
     <div id="mainContent" class="main-content">
         <header class="dashboard-header">
             <div class="container">
-                <h1>Welcome, <?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></h1>
-                <p>Your Personal Learning Dashboard</p>
+                <h1>Course Enrollment</h1>
+                <p>Select and Enroll in Courses</p>
             </div>
         </header>
 
@@ -208,7 +274,7 @@ body {
             <?php endif; ?>
 
             <div class="row">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <h2 class="mb-4">Available Courses</h2>
                     <?php if ($courses_result->num_rows > 0): ?>
                         <?php while ($course = $courses_result->fetch_assoc()): ?>
@@ -220,11 +286,17 @@ body {
                                     <span class="text-muted">Instructor: <?php echo htmlspecialchars($course['instructor_name']); ?></span>
                                     <span class="fw-bold">KES<?php echo number_format($course['price'], 2); ?></span>
                                 </div>
-                                <a href="enrollment.php?course_id=<?php echo $course['id']; ?>" class="btn btn-custom mt-3">Enroll Now</a>
+                                <span class="text-muted">Enrolled Students: <?php echo $course['enrolled_count']; ?></span>
+                                <a href="#" 
+                                   class="btn btn-custom mt-3 enroll-btn" 
+                                   data-course-id="<?php echo $course['id']; ?>"
+                                   data-course-title="<?php echo htmlspecialchars($course['title']); ?>">
+                                    Enroll Now
+                                </a>
                             </div>
                         <?php endwhile; ?>
                     <?php else: ?>
-                        <div class="alert alert-info">No courses available at the moment.</div>
+                        <div class="alert alert-info">No courses available for enrollment at the moment.</div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -232,6 +304,29 @@ body {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click event listener to all enroll buttons
+            const enrollButtons = document.querySelectorAll('.enroll-btn');
+            
+            enrollButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const courseId = this.getAttribute('data-course-id');
+                    const courseTitle = this.getAttribute('data-course-title');
+                    
+                    // Show confirmation dialog
+                    const confirmEnroll = confirm(`Are you sure you want to enroll in the course: ${courseTitle}?`);
+                    
+                    if (confirmEnroll) {
+                        // Redirect to enrollment page with course ID
+                        window.location.href = `enrollment.php?course_id=${courseId}`;
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
