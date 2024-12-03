@@ -1,3 +1,47 @@
+<?php
+session_name('instructor_session');
+session_start();
+require_once 'include/database.php';
+
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: http://localhost:8000/User");
+    exit();
+}
+
+$login_identifier = $_POST['username'];
+$password = $_POST['password'];
+
+
+$query = "SELECT id, password FROM instructors WHERE username = ? OR email = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("ss", $login_identifier, $login_identifier);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows == 1) {
+    $instructor = $result->fetch_assoc();
+    
+   
+    if (password_verify($password, $instructor['password'])) {
+       
+        session_regenerate_id(true);
+        
+        
+        $_SESSION['instructor_id'] = $instructor['id'];
+        $_SESSION['logged_in'] = true;
+        
+        
+        header("Location:http://localhost:8000/User/dashboard.php");
+        exit();
+    }
+}
+
+
+$_SESSION['login_error'] = "Invalid username or password";
+header("Location: http://localhost:8000/User/index.php");
+exit();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

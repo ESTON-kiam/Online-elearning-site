@@ -1,15 +1,16 @@
 <?php
+session_name('instructor_session');
 session_start();
-// Ensure only logged-in instructors can access this page
+
 if (!isset($_SESSION['instructor_id'])) {
     header("Location: login.php");
     exit();
 }
 
-// Database connection
+
 require_once 'db_connection.php';
 
-// Fetch instructor details
+
 $instructor_id = $_SESSION['instructor_id'];
 $instructor_query = "SELECT * FROM instructors WHERE id = ?";
 $stmt = $conn->prepare($instructor_query);
@@ -18,7 +19,7 @@ $stmt->execute();
 $instructor_result = $stmt->get_result();
 $instructor = $instructor_result->fetch_assoc();
 
-// Fetch instructor's courses
+
 $courses_query = "SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, c.is_active,
                          COUNT(DISTINCT ci.id) AS enrolled_students
                   FROM courses c

@@ -151,7 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label>
                     <input type="checkbox" name="remember"> Remember me
                 </label>
-                <a href="#" style="color: var(--secondary-color);">Forgot Password?</a>
+                <a href="http://localhost:8000/User/forgotpassword.php" style="color: var(--secondary-color);">Forgot Password?</a>
             </div>
         </form>
         

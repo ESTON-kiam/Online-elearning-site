@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <form method="POST" enctype="multipart/form-data">
                 <div class="text-center mb-4">
-                    <img src="<?php echo $student['profile_image'] ? htmlspecialchars($student['profile_image']) : 'default-profile.png'; ?>" 
+                    <img src="Userprof/<?php echo $student['profile_image'] ? htmlspecialchars($student['profile_image']) : 'default-profile.png'; ?>" 
                          alt="Profile Image" 
                          class="profile-image mb-3">
                     <div class="mb-3">

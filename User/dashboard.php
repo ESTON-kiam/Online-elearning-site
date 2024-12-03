@@ -1,197 +1,165 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Grades Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f4f6f9; }
-        .grades-header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            padding: 2rem 0;
-            border-radius: 0 0 20px 20px;
-        }
-        .course-card {
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .progress { height: 20px; }
-    </style>
-</head>
-<body>
 <?php
+session_name('student_session');
 session_start();
 
 if (!isset($_SESSION['student_id'])) {
-    header("Location: /User");
+    header("Location: http://localhost:8000/User/");
     exit();
 }
 
 require_once 'include/database.php';
 
 $student_id = $_SESSION['student_id'];
-
-
-function calculateGradePercentage($obtained_marks, $total_marks) {
-    return ($total_marks > 0) ? round(($obtained_marks / $total_marks) * 100, 2) : 0;
-}
-
-
-$courses_query = "
-    SELECT 
-        c.id AS course_id, 
-        c.title AS course_title,
-        SUM(IFNULL(ss.marks, 0)) AS total_obtained_marks,
-        SUM(ca.total_marks) AS total_course_marks
-    FROM 
-        courses c
-    JOIN 
-        enrollments e ON c.id = e.course_id
-    JOIN 
-        course_activities ca ON c.id = ca.course_id
-    LEFT JOIN 
-        student_submissions ss ON ca.id = ss.activity_id AND e.student_id = ss.student_id
-    WHERE 
-        e.student_id = ?
-    GROUP BY 
-        c.id, c.title
-";
-
-$stmt = $conn->prepare($courses_query);
+$student_query = "SELECT * FROM students WHERE id = ?";
+$stmt = $conn->prepare($student_query);
 $stmt->bind_param("i", $student_id);
 $stmt->execute();
-$courses_result = $stmt->get_result();
+$student_result = $stmt->get_result();
+$student = $student_result->fetch_assoc();
+
+// Query to get enrolled courses
+$enrolled_courses_query = "
+    SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name
+    FROM courses c
+    JOIN enrollments e ON c.id = e.course_id
+    JOIN course_instructors ci ON c.id = ci.course_id
+    JOIN instructors i ON ci.instructor_id = i.id
+    WHERE e.student_id = ? AND c.is_active = 1";
+$stmt = $conn->prepare($enrolled_courses_query);
+$stmt->bind_param("i", $student_id);
+$stmt->execute();
+$enrolled_courses_result = $stmt->get_result();
+
+// Query to check if there are any available courses for enrollment
+$available_courses_query = "
+    SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name
+    FROM courses c
+    JOIN course_instructors ci ON c.id = ci.course_id
+    JOIN instructors i ON ci.instructor_id = i.id
+    WHERE c.is_active = 1 AND c.id NOT IN (
+        SELECT course_id FROM enrollments WHERE student_id = ?
+    )";
+$stmt = $conn->prepare($available_courses_query);
+$stmt->bind_param("i", $student_id);
+$stmt->execute();
+$available_courses_result = $stmt->get_result();
 ?>
+<!DOCTYPE html>
+<html lang="en">
 
-<div class="grades-header text-center mb-4">
-    <div class="container">
-        <h1>My Academic Performance</h1>
-        <p class="lead">Comprehensive Grade Overview</p>
-    </div>
-</div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
 
-<div class="container">
-    <?php if ($courses_result->num_rows == 0): ?>
-        <div class="alert alert-info">
-            You are not currently enrolled in any courses.
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/css/dash.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Sidebar Toggle Button -->
+    <button id="sidebarToggle" class="toggle-sidebar">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div id="sidebar" class="sidebar sidebar-mini">
+        <div class="sidebar-content">
+            <a href="#" class="sidebar-link active">
+                <i class="bi bi-house"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="courses.php" class="sidebar-link">
+                <i class="bi bi-book"></i>
+                <span>Courses</span>
+            </a>
+            <a href="profile.php" class="sidebar-link">
+                <i class="bi bi-person"></i>
+                <span>Profile</span>
+            </a>
+            <a href="grades.php" class="sidebar-link">
+                <i class="bi bi-clipboard-data"></i>
+                <span>Grades</span>
+            </a>
+            <a href="enrollment.php" class="sidebar-link">
+                <i class="bi bi-journal-plus"></i>
+                <span>Enrollment</span>
+            </a>
+            <div class="mt-auto">
+                <a href="logout.php" class="sidebar-link">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
         </div>
-    <?php else: ?>
-        <?php while ($course = $courses_result->fetch_assoc()): ?>
-            <div class="card course-card">
-                <div class="card-header bg-primary text-white">
-                    <h3><?php echo htmlspecialchars($course['course_title']); ?></h3>
+    </div>
+
+    <div id="mainContent" class="main-content">
+        <header class="dashboard-header">
+            <div class="container">
+                <h1>Welcome, <?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></h1>
+                <p>Your Personal Learning Dashboard</p>
+            </div>
+        </header>
+
+        <div class="container dashboard-section">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="profile-card">
+                        <h3 class="mb-4">Profile Details</h3>
+                        <p><strong>Username:</strong> <?php echo htmlspecialchars($student['username']); ?></p>
+                        <p><strong>Email:</strong> <?php echo htmlspecialchars($student['email']); ?></p>
+                        <p><strong>Phone:</strong> <?php echo htmlspecialchars($student['phone_number'] ?? 'Not provided'); ?></p>
+                        <a href="profile.php" class="btn btn-custom mt-3">Edit Profile</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <?php 
-                    $overall_percentage = calculateGradePercentage(
-                        $course['total_obtained_marks'], 
-                        $course['total_course_marks']
-                    ); 
-                    ?>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Total Marks Obtained:</strong> 
-                                <?php echo number_format($course['total_obtained_marks'], 2); ?>
-                            </p>
-                            <p><strong>Total Course Marks:</strong> 
-                                <?php echo number_format($course['total_course_marks'], 2); ?>
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Overall Performance:</strong></p>
-                            <div class="progress">
-                                <div 
-                                    class="progress-bar <?php 
-                                        echo $overall_percentage >= 70 ? 'bg-success' : 
-                                            ($overall_percentage >= 50 ? 'bg-warning' : 'bg-danger'); 
-                                    ?>" 
-                                    role="progressbar" 
-                                    style="width: <?php echo $overall_percentage; ?>%"
-                                    aria-valuenow="<?php echo $overall_percentage; ?>" 
-                                    aria-valuemin="0" 
-                                    aria-valuemax="100"
-                                >
-                                    <?php echo $overall_percentage; ?>%
-                                </div>
+
+                <div class="col-md-8">
+    <?php if ($enrolled_courses_result->num_rows > 0): ?>
+        <h2 class="mb-4">My Courses</h2>
+        <?php while ($course = $enrolled_courses_result->fetch_assoc()): ?>
+            <a href="resources.php?course_id=<?php echo $course['id']; ?>" class="text-decoration-none">
+                <div class="course-card p-3 mb-3">
+                    <h4><?php echo htmlspecialchars($course['title']); ?></h4>
+                    <p><?php echo htmlspecialchars($course['description']); ?></p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary"><?php echo htmlspecialchars($course['YearOfStudent']); ?> Year</span>
+                        <span class="text-muted">Instructor: <?php echo htmlspecialchars($course['instructor_name']); ?></span>
+                        <span class="fw-bold">KES<?php echo number_format($course['price'], 2); ?></span>
+                    </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Detailed Activity Breakdown -->
-                    <div class="mt-3">
-                        <h5>Activity Breakdown</h5>
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Activity</th>
-                                    <th>Marks Obtained</th>
-                                    <th>Total Marks</th>
-                                    <th>Performance</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                // Fetch detailed activity grades
-                                $activities_query = "
-                                    SELECT 
-                                        ca.title,
-                                        IFNULL(MAX(ss.marks), 0) AS max_marks,
-                                        ca.total_marks
-                                    FROM 
-                                        course_activities ca
-                                    LEFT JOIN 
-                                        student_submissions ss ON ca.id = ss.activity_id 
-                                        AND ss.student_id = ?
-                                    WHERE 
-                                        ca.course_id = ?
-                                    GROUP BY 
-                                        ca.id, ca.title, ca.total_marks
-                                ";
-                                $activity_stmt = $conn->prepare($activities_query);
-                                $activity_stmt->bind_param("ii", $student_id, $course['course_id']);
-                                $activity_stmt->execute();
-                                $activities_result = $activity_stmt->get_result();
-
-                                while ($activity = $activities_result->fetch_assoc()):
-                                    $activity_percentage = calculateGradePercentage(
-                                        $activity['max_marks'], 
-                                        $activity['total_marks']
-                                    );
-                                ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($activity['title']); ?></td>
-                                        <td><?php echo number_format($activity['max_marks'], 2); ?></td>
-                                        <td><?php echo number_format($activity['total_marks'], 2); ?></td>
-                                        <td>
-                                            <div class="progress">
-                                                <div 
-                                                    class="progress-bar <?php 
-                                                        echo $activity_percentage >= 70 ? 'bg-success' : 
-                                                            ($activity_percentage >= 50 ? 'bg-warning' : 'bg-danger'); 
-                                                    ?>" 
-                                                    role="progressbar" 
-                                                    style="width: <?php echo $activity_percentage; ?>%"
-                                                    aria-valuenow="<?php echo $activity_percentage; ?>" 
-                                                    aria-valuemin="0" 
-                                                    aria-valuemax="100"
-                                                >
-                                                    <?php echo $activity_percentage; ?>%
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <?php if ($available_courses_result->num_rows > 0): ?>
+                            <div class="alert alert-info mb-4">
+                                <p>You are not currently enrolled in any courses.</p>
+                                <a href="enrollment.php" class="btn btn-primary">Enroll in a Course</a>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-warning">
+                                <p>No courses are currently available for enrollment.</p>
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
                 </div>
             </div>
-        <?php endwhile; ?>
-    <?php endif; ?>
-</div>
+        </div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+
+            sidebarToggle.addEventListener('click', function () {
+                sidebar.classList.toggle('sidebar-mini');
+                mainContent.classList.toggle('main-content-full');
+            });
+        });
+    </script>
 </body>
+
 </html>
