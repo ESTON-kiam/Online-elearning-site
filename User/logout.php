@@ -1,12 +1,11 @@
-
 <?php
-session_name('super_admin');
+session_name('student_session');
 session_start();
 require_once 'include/database.php';
-$student_id = $_SESSION['admin_id'] ?? null; 
+$student_id = $_SESSION['student_id'] ?? null; 
 if ($student_id) {
     $current_time = date('Y-m-d H:i:s'); 
-    $query = "UPDATE admin SET last_logout = ? WHERE admin_id = ?";
+    $query = "UPDATE students SET last_logout = ? WHERE id = ?";
     $stmt = $conn->prepare($query);
     if ($stmt) {
         $stmt->bind_param('si', $current_time, $student_id);
@@ -21,6 +20,6 @@ session_unset();
 session_destroy();
 
 
-header('Location: http://localhost:8000/Admin');
+header('Location: http://localhost:8000/User');
 exit();
 ?>

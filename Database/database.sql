@@ -13,6 +13,14 @@ CREATE TABLE admin (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+CREATE TABLE enrollments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    course_id INT NOT NULL,
+    enrollment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+);
 
 CREATE TABLE courses (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -66,6 +74,8 @@ CREATE TABLE students (
     password VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20)
 );
+ALTER TABLE courses 
+ADD COLUMN allocation_status ENUM('pending', 'allocated') DEFAULT 'pending';
 CREATE TABLE admin_remember_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
     admin_id INT NOT NULL,

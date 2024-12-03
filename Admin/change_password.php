@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Change Password</title>
     <style>
-/* General body styles */
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
@@ -88,10 +88,10 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    text-align: center; /* Ensure text is centered */
+    text-align: center; 
 }
 
-/* Form container */
+
 form {
     background: #fff;
     border: 1px solid #ddd;
@@ -100,17 +100,17 @@ form {
     width: 100%;
     max-width: 400px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 20px; /* Add margin for spacing from the top */
+    margin-top: 20px; 
 }
 
-/* Form heading */
+
 h2 {
     text-align: center;
     color: #555;
     margin-bottom: 20px;
 }
 
-/* Form fields */
+
 form div {
     margin-bottom: 15px;
 }
@@ -130,7 +130,7 @@ input[type="password"] {
     box-sizing: border-box;
 }
 
-/* Submit button */
+
 button {
     width: 100%;
     padding: 10px;
@@ -146,7 +146,7 @@ button:hover {
     background-color: #0056b3;
 }
 
-/* Response message styles */
+
 #responseMessage {
     margin-top: 15px;
     font-size: 14px;
@@ -173,8 +173,8 @@ button:hover {
 
 </style>
 </head>
-<body>
-    <h2>Change Password</h2>
+<body><div>
+    <h2>Change Password</h2></div>
     <form id="changePasswordForm" method="POST">
         <div>
             <label for="current_password">Current Password:</label>
