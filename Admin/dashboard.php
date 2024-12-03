@@ -11,14 +11,22 @@ if (!isset($_SESSION['admin_id'])) {
 $instructors_query = "SELECT COUNT(*) as total_instructors FROM instructors";
 $courses_query = "SELECT COUNT(*) as total_courses FROM courses";
 $allocated_courses_query = "SELECT COUNT(*) as total_allocated FROM course_instructors";
+$students_query = "SELECT COUNT(*) as total_students FROM students";
+$pending_allocation_query = "SELECT COUNT(*) AS pending_allocation FROM courses WHERE allocation_status = 'pending'";
+
 
 $instructors_result = mysqli_query($conn, $instructors_query);
 $courses_result = mysqli_query($conn, $courses_query);
 $allocated_result = mysqli_query($conn, $allocated_courses_query);
+$students_result = mysqli_query($conn, $students_query);
+$pending_result = mysqli_query($conn, $pending_allocation_query);
+
 
 $total_instructors = mysqli_fetch_assoc($instructors_result)['total_instructors'];
 $total_courses = mysqli_fetch_assoc($courses_result)['total_courses'];
 $total_allocated = mysqli_fetch_assoc($allocated_result)['total_allocated'];
+$total_students = mysqli_fetch_assoc($students_result)['total_students'];
+$pending_allocation = mysqli_fetch_assoc($pending_result)['pending_allocation'];
 ?>
 
 <!DOCTYPE html>
@@ -92,6 +100,14 @@ $total_allocated = mysqli_fetch_assoc($allocated_result)['total_allocated'];
                 <div class="card allocated-courses">
                     <h3>Allocated Courses</h3>
                     <p><?php echo $total_allocated; ?></p>
+                </div>
+                <div class="card allocated-courses">
+                    <h3>No Of Students</h3>
+                    <p><?php echo $total_students; ?></p>
+                </div>
+                <div class="card allocated-courses">
+                    <h3>Pending Allocation Courses</h3>
+                    <p><?php echo $pending_allocation; ?></p>
                 </div>
             </div>
         </main>

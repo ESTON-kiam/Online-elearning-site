@@ -72,8 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link href="assets/css/add.css" rel="stylesheet">
 </head>
 <body>
-    <?php include('include/header.php') ?>
-    <?php include('include/sidebar.php')?>
+   
 
     <h1>Add New Course</h1>
  <?php

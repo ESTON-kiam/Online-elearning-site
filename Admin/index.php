@@ -160,9 +160,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <a href="http://localhost:8000/" class="social-button staff-login">
                 <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Return to Home
             </a>
-            <a href="http://localhost:8000/admin/Register.php" class="social-button staff-login">
-                <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Register
-            </a>
+            
         </div>
     </div>
 </body>
