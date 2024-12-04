@@ -13,7 +13,6 @@
             <i class="fas fa-lock"></i>
         </div>
         <h2 class="login-title">Secure Login Portal</h2>
-       
         <div class="social-login">
     <a href="http://localhost:8000/Instructors" class="social-button staff-login">
         <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Instructors Login
@@ -22,9 +21,6 @@
         <i class="fas fa-graduation-cap" style="margin-right: 10px;"></i>Student Login
     </a>
 </div>
-
-        
-       
-    </div>
+</div>
 </body>
 </html>

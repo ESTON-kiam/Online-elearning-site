@@ -3,12 +3,12 @@ session_name('instructor_session');
 session_start();
 
 if (!isset($_SESSION['instructor_id'])) {
-    header("Location: login.php");
+    header("Location:dashboard");
     exit();
 }
 
 
-require_once 'db_connection.php';
+require_once 'include/database.php';
 
 
 $instructor_id = $_SESSION['instructor_id'];
@@ -37,7 +37,6 @@ $courses_result = $stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instructor Dashboard</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
@@ -111,10 +110,8 @@ $courses_result = $stmt->get_result();
             <p>Welcome, <?php echo htmlspecialchars($instructor['name']); ?></p>
         </div>
     </header>
-
     <div class="container dashboard-section">
         <div class="row">
-            <!-- Profile Section -->
             <div class="col-md-4">
                 <div class="profile-card">
                     <h3 class="mb-4">Profile Details</h3>
@@ -124,8 +121,6 @@ $courses_result = $stmt->get_result();
                     <a href="edit_profile.php" class="btn btn-custom mt-3">Edit Profile</a>
                 </div>
             </div>
-
-            <!-- Courses Section -->
             <div class="col-md-8">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2>My Courses</h2>
@@ -167,7 +162,6 @@ $courses_result = $stmt->get_result();
         </div>
     </div>
 
-    <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

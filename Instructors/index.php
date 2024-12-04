@@ -61,27 +61,19 @@ exit();
             <input type="text" name="username" placeholder="Username or Email" required>
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit" class="login-button">Log In</button>
-            
             <div class="login-extras">
                 <label>
                     <input type="checkbox" name="remember"> Remember me
                 </label>
                 <a href="#" style="color: var(--secondary-color);">Forgot Password?</a>
             </div>
-        </form>
-        
-       
+        </form>    
         <div class="social-login">
     <a href="http://localhost:8000/" class="social-button staff-login">
         <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Return TO Home
     </a>
-   
 </div>
-
-          
-        </div>
-        
-        
+        </div> 
     </div>
 </body>
 </html>

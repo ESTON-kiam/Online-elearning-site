@@ -82,48 +82,7 @@ while ($row = $submitted_activities_result->fetch_assoc()) {
     <title><?php echo htmlspecialchars($course['title']); ?> - Course Resources</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f4f6f9;
-            font-family: 'Inter', sans-serif;
-        }
-        .course-header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            border-radius: 0 0 20px 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .course-header h1 {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        .card-custom {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-        .card-custom:hover {
-            transform: translateY(-10px);
-        }
-        .list-group-item {
-            border-left: 4px solid #2575fc;
-            transition: all 0.3s ease;
-        }
-        .list-group-item:hover {
-            background-color: #f8f9fa;
-        }
-        .btn-submit {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            border: none;
-        }
-        .btn-submit:hover {
-            opacity: 0.9;
-        }
-    </style>
+   <link href="assets/css/resource.css" rel="stylesheet">
 </head>
 <body>
     <div class="course-header text-center">

@@ -164,8 +164,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </a>
    
 </div>
-        
-       
     </div>
 </body>
 </html>

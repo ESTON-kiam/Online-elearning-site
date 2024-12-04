@@ -150,7 +150,7 @@ $courses_result = $stmt->get_result();
                         </div>
                     </div>
 
-                    <!-- Detailed Activity Breakdown -->
+                    
                     <div class="mt-3">
                         <h5>Activity Breakdown</h5>
                         <table class="table table-striped">
@@ -164,7 +164,7 @@ $courses_result = $stmt->get_result();
                             </thead>
                             <tbody>
                                 <?php
-                                // Fetch detailed activity grades
+                                
                                 $activities_query = "
                                     SELECT 
                                         ca.title,
@@ -222,7 +222,6 @@ $courses_result = $stmt->get_result();
         <?php endwhile; ?>
     <?php endif; ?>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

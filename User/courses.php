@@ -33,11 +33,11 @@ $courses_result = $conn->query($courses_query);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Available Courses</title>
 
-    <!-- Bootstrap CSS -->
+  
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        /* Styles as in the previous example */
+        
         :root {
             --primary-color: #3498db;
             --secondary-color: #2ecc71;
@@ -79,7 +79,7 @@ $courses_result = $conn->query($courses_query);
 </head>
 
 <body>
-    <!-- Sidebar and Header here (same as before) -->
+   
 
     <div class="container">
         <h2 class="my-4">Available Courses</h2>
@@ -105,7 +105,7 @@ $courses_result = $conn->query($courses_query);
         </div>
     </div>
 
-    <!-- Footer and Scripts here (same as before) -->
+   
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -17,7 +17,7 @@ $stmt->execute();
 $student_result = $stmt->get_result();
 $student = $student_result->fetch_assoc();
 
-// Query to get enrolled courses
+
 $enrolled_courses_query = "
     SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name
     FROM courses c
@@ -30,7 +30,7 @@ $stmt->bind_param("i", $student_id);
 $stmt->execute();
 $enrolled_courses_result = $stmt->get_result();
 
-// Query to check if there are any available courses for enrollment
+
 $available_courses_query = "
     SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name
     FROM courses c
@@ -52,14 +52,14 @@ $available_courses_result = $stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard</title>
 
-    <!-- Bootstrap CSS -->
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/css/dash.css" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Sidebar Toggle Button -->
+    
     <button id="sidebarToggle" class="toggle-sidebar">
         <i class="bi bi-list"></i>
     </button>
