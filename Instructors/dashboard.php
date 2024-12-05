@@ -3,7 +3,7 @@ session_name('instructor_session');
 session_start();
 
 if (!isset($_SESSION['instructor_id'])) {
-    header("Location:dashboard");
+    header("Location:http://localhost:8000/instructors");
     exit();
 }
 
@@ -38,70 +38,7 @@ $courses_result = $stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instructor Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #6a11cb;
-            --secondary-color: #2575fc;
-            --text-color: #333;
-            --bg-color: #f4f6f7;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            font-family: 'Arial', sans-serif;
-        }
-
-        .dashboard-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem 0;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .profile-card {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .course-card {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-            transition: transform 0.3s ease;
-        }
-
-        .course-card:hover {
-            transform: scale(1.02);
-        }
-
-        .dashboard-section {
-            padding: 2rem 0;
-        }
-
-        .btn-custom {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            transition: all 0.3s ease;
-        }
-
-        .btn-custom:hover {
-            background-color: var(--secondary-color);
-            color: white;
-            transform: translateY(-3px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-
-        .badge-status {
-            font-size: 0.9rem;
-            padding: 0.4rem 0.6rem;
-        }
-    </style>
+   <link href="assets/css/dash.css" rel="stylesheet">
 </head>
 <body>
     <header class="dashboard-header">

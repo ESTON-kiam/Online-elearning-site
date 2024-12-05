@@ -226,7 +226,7 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .then(data => {
             if (data.status === 'success') {
                 alert('Course allocated successfully!');
-                // Optionally, reload the page to show updated list
+                
                 window.location.reload();
             } else {
                 alert('Error: ' + data.message);

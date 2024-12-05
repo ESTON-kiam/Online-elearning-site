@@ -9,7 +9,7 @@ if (!isset($_SESSION['student_id'])) {
 
 require_once 'include/database.php';
 
-// Validate course_id parameter
+
 if (!isset($_GET['course_id']) || !is_numeric($_GET['course_id'])) {
     header("Location: dashboard.php");
     exit();
@@ -18,7 +18,7 @@ if (!isset($_GET['course_id']) || !is_numeric($_GET['course_id'])) {
 $student_id = $_SESSION['student_id'];
 $course_id = $_GET['course_id'];
 
-// Check if student is enrolled in the course
+
 $enrollment_check_query = "SELECT * FROM enrollments WHERE student_id = ? AND course_id = ?";
 $stmt = $conn->prepare($enrollment_check_query);
 $stmt->bind_param("ii", $student_id, $course_id);
@@ -30,7 +30,7 @@ if ($enrollment_result->num_rows == 0) {
     exit();
 }
 
-// Get course details
+
 $course_query = "SELECT c.title, c.description, i.name AS instructor_name 
                  FROM courses c 
                  JOIN course_instructors ci ON c.id = ci.course_id
@@ -42,7 +42,7 @@ $stmt->execute();
 $course_result = $stmt->get_result();
 $course = $course_result->fetch_assoc();
 
-// Fetch course activities (CATs, Assignments)
+
 $activities_query = "SELECT id, title, description, due_date, type 
                      FROM course_activities 
                      WHERE course_id = ? 
@@ -52,7 +52,7 @@ $stmt->bind_param("i", $course_id);
 $stmt->execute();
 $activities_result = $stmt->get_result();
 
-// Fetch course notes
+
 $notes_query = "SELECT id, title, file_path, upload_date 
                 FROM course_notes 
                 WHERE course_id = ? 
@@ -62,7 +62,7 @@ $stmt->bind_param("i", $course_id);
 $stmt->execute();
 $notes_result = $stmt->get_result();
 
-// Check for student's submitted activities
+
 $submitted_activities_query = "SELECT activity_id 
                                 FROM student_submissions 
                                 WHERE student_id = ? AND course_id = ?";

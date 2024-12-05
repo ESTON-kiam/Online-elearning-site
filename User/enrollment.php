@@ -177,7 +177,7 @@ $courses_result = $stmt->get_result();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Add click event listener to all enroll buttons
+            
             const enrollButtons = document.querySelectorAll('.enroll-btn');
             
             enrollButtons.forEach(button => {
@@ -187,11 +187,11 @@ $courses_result = $stmt->get_result();
                     const courseId = this.getAttribute('data-course-id');
                     const courseTitle = this.getAttribute('data-course-title');
                     
-                    // Show confirmation dialog
+                    
                     const confirmEnroll = confirm(`Are you sure you want to enroll in the course: ${courseTitle}?`);
                     
                     if (confirmEnroll) {
-                        // Redirect to enrollment page with course ID
+                        
                         window.location.href = `enrollment.php?course_id=${courseId}`;
                     }
                 });

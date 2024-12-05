@@ -19,8 +19,6 @@ if ($student_id) {
 }
 session_unset();
 session_destroy();
-
-
 header('Location: http://localhost:8000/Admin');
 exit();
 ?>

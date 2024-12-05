@@ -5,13 +5,13 @@ require_once 'include/database.php';
 
 global $database, $conn;
 
-// Check if admin is logged in
+
 if (!isset($_SESSION['admin_id'])) {
     header('Location: /admin');
     exit();
 }
 
-// Check if an instructor ID is provided
+
 if (!isset($_GET['id']) || !filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
     $_SESSION['error_message'] = "Invalid instructor ID.";
     header('Location: manage_instructors.php');
@@ -20,7 +20,7 @@ if (!isset($_GET['id']) || !filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
 
 $instructor_id = (int)$_GET['id'];
 
-// Handle form submission
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $database->sanitizeInput($_POST['name']);
     $username = $database->sanitizeInput($_POST['username']);
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $errors = [];
 
-    // Validate inputs
+   
     if (empty($name)) {
         $errors[] = "Name is required.";
     }
@@ -43,12 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Invalid email address.";
     }
 
-    // Handle profile image upload
+   
     $profile_image = null;
     if (!empty($_FILES['profile_image']['name'])) {
         $upload_dir = 'uploads/instructors/';
         
-        // Create directory if it doesn't exist
+        
         if (!file_exists($upload_dir)) {
             mkdir($upload_dir, 0777, true);
         }
@@ -57,13 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $target_path = $upload_dir . $file_name;
         $image_file_type = strtolower(pathinfo($target_path, PATHINFO_EXTENSION));
 
-        // Validate file type
+        
         $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
         if (!in_array($image_file_type, $allowed_types)) {
             $errors[] = "Invalid image file type. Allowed types: JPG, JPEG, PNG, GIF.";
         }
 
-        // Validate file size (max 5MB)
+      
         if ($_FILES['profile_image']['size'] > 5 * 1024 * 1024) {
             $errors[] = "Image file is too large. Maximum size is 5MB.";
         }
@@ -77,10 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // If no errors, update instructor
+   
     if (empty($errors)) {
         try {
-            // Determine if we need to update the profile image
+            
             $update_query = $profile_image 
                 ? "UPDATE instructors SET name = ?, username = ?, email = ?, expertise = ?, is_active = ?, profile_image = ? WHERE id = ?"
                 : "UPDATE instructors SET name = ?, username = ?, email = ?, expertise = ?, is_active = ? WHERE id = ?";
@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch current instructor details
+
 try {
     $stmt = $conn->prepare("SELECT * FROM instructors WHERE id = ?");
     $stmt->bind_param("i", $instructor_id);

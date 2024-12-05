@@ -5,7 +5,7 @@ require_once 'include/database.php';
 
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: http://localhost:8000/User");
+    header("Location: http://localhost:8000/instructors");
     exit();
 }
 
@@ -32,14 +32,14 @@ if ($result->num_rows == 1) {
         $_SESSION['logged_in'] = true;
         
         
-        header("Location:http://localhost:8000/User/dashboard.php");
+        header("Location:http://localhost:8000/instructors/dashboard.php");
         exit();
     }
 }
 
 
 $_SESSION['login_error'] = "Invalid username or password";
-header("Location: http://localhost:8000/User/index.php");
+header("Location: http://localhost:8000/instructors");
 exit();
 ?>
 <!DOCTYPE html>

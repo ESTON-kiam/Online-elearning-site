@@ -14,10 +14,10 @@
         </div>
         <h2 class="login-title">Secure Login Portal</h2>
         <div class="social-login">
-    <a href="http://localhost:8000/Instructors" class="social-button staff-login">
-        <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Instructors Login
+    <a href="http://localhost:8000/instructors" class="social-button staff-login">
+        <i class="fas fa-user-tie" style="margin-right: 10px;"></i>Instructor Login
     </a>
-    <a href="http://localhost:8000/User" class="social-button student-login">
+    <a href="http://localhost:8000/user" class="social-button student-login">
         <i class="fas fa-graduation-cap" style="margin-right: 10px;"></i>Student Login
     </a>
 </div>
