@@ -1,46 +1,130 @@
 <?php
 session_name('instructor_session');
 session_start();
+
 require_once 'include/database.php';
 
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: http://localhost:8000/instructors");
-    exit();
-}
-
-$login_identifier = $_POST['username'];
-$password = $_POST['password'];
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 
-$query = "SELECT id, password FROM instructors WHERE username = ? OR email = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("ss", $login_identifier, $login_identifier);
-$stmt->execute();
-$result = $stmt->get_result();
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60;
 
-if ($result->num_rows == 1) {
-    $instructor = $result->fetch_assoc();
-    
-   
-    if (password_verify($password, $instructor['password'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    try {
+        $db = new DatabaseConnection();
+        $conn = $db->getConnection();
+
+        if (!$conn) {
+            throw new Exception("Database connection failed");
+        }
+
        
-        session_regenerate_id(true);
+        $login_input = $db->sanitizeInput($_POST['username']);
+        $password = $_POST['password'];
+
+       
+        $ip_address = $_SERVER['REMOTE_ADDR'];
+        $cache_key = "login_attempts_{$ip_address}";
+
         
-        
-        $_SESSION['instructor_id'] = $instructor['id'];
-        $_SESSION['logged_in'] = true;
-        
-        
-        header("Location:http://localhost:8000/instructors/dashboard.php");
+        if (isset($_SESSION[$cache_key]['lockout_until']) && 
+            time() < $_SESSION[$cache_key]['lockout_until']) {
+            error_log("Login attempt during lockout - IP: {$ip_address}");
+            $_SESSION['login_error'] = "Too many failed attempts. Please try again later.";
+            header("Location: index.php");
+            exit();
+        }
+
+      
+        $stmt = $conn->prepare("
+            SELECT id, username, email, password, last_login, profile_image 
+            FROM instructors 
+            WHERE (username = ? OR email = ?) AND is_active = 1
+        ");
+
+        if (!$stmt) {
+            throw new Exception("Prepare statement failed: " . $conn->error);
+        }
+
+        $stmt->bind_param("ss", $login_input, $login_input);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+
+        $result = $stmt->get_result();
+
+        if ($result->num_rows === 1) {
+            $user = $result->fetch_assoc();
+
+         
+            if (!empty($user['password']) &&
+                (strlen($user['password']) > 20) &&
+                password_verify($password, $user['password'])) {
+                
+                
+                unset($_SESSION[$cache_key]);
+                unset($_SESSION['login_error']);
+
+             
+                $_SESSION['instructor_logged_in'] = true;
+                $_SESSION['instructor_id'] = $user['id'];
+                $_SESSION['instructor_username'] = $user['username'];
+                $_SESSION['profile_image'] = $user['profile_image'] ?? 'default.png';
+
+              
+                $update_stmt = $conn->prepare("UPDATE instructors SET last_login = NOW() WHERE id = ?");
+                $update_stmt->bind_param("i", $user['id']);
+                $update_stmt->execute();
+
+                error_log("Successful Login - Redirecting User ID: " . $user['id']);
+                header("Location: http://localhost:8000/instructors/dashboard.php");
+                exit();
+            } else {
+                
+                error_log("Password verification failed for: " . $login_input);
+                
+                
+                if (!isset($_SESSION[$cache_key])) {
+                    $_SESSION[$cache_key] = [
+                        'attempts' => 1,
+                        'first_attempt' => time()
+                    ];
+                } else {
+                    $_SESSION[$cache_key]['attempts']++;
+                }
+
+                
+                if ($_SESSION[$cache_key]['attempts'] >= MAX_LOGIN_ATTEMPTS) {
+                    $_SESSION[$cache_key]['lockout_until'] = time() + LOCKOUT_DURATION;
+                    error_log("IP Locked Out - Address: {$ip_address}");
+                }
+
+                $_SESSION['login_error'] = "Invalid credentials. Please check your password.";
+                header("Location: /instructors");
+                exit();
+            }
+        } else {
+            error_log("No user found for: " . $login_input);
+            $_SESSION['login_error'] = "User not found. Please check your credentials.";
+            header("Location: /instructors");
+            exit();
+        }
+    } catch (Exception $e) {
+        error_log("Login Error: " . $e->getMessage());
+        $_SESSION['login_error'] = "An unexpected error occurred. Please try again.";
+        header("Location: /instructors");
         exit();
+    } finally {
+        
+        if (isset($stmt)) $stmt->close();
+        if (isset($update_stmt)) $update_stmt->close();
+        if (isset($db)) $db->closeConnection();
     }
 }
-
-
-$_SESSION['login_error'] = "Invalid username or password";
-header("Location: http://localhost:8000/instructors");
-exit();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,7 +141,7 @@ exit();
             <i class="fas fa-lock"></i>
         </div>
         <h2 class="login-title">Secure Instructor Login Portal</h2>
-        <form class="login-form" action="process_login.php" method="POST">
+        <form class="login-form" action="" method="POST">
             <input type="text" name="username" placeholder="Username or Email" required>
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit" class="login-button">Log In</button>

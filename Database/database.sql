@@ -65,6 +65,9 @@ CREATE TABLE course_instructors (
     UNIQUE KEY unique_course_instructor (course_id, instructor_id)
 );
 
+ALTER TABLE instructors
+add COLUMN last_login Datetime,
+add COLUMN last_logout Datetime;
 CREATE TABLE students (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
