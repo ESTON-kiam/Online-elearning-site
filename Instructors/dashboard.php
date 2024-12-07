@@ -38,63 +38,7 @@ $courses_result = $stmt->get_result();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f4f6f9;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-            background-color: #2c3e50;
-            color: #fff;
-        }
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: #e9ecef;
-            padding: 0.75rem 1.5rem;
-        }
-        .sidebar .nav-link:hover {
-            background-color: rgba(255,255,255,0.1);
-            color: #fff;
-        }
-        .sidebar .nav-link.active {
-            background-color: #34495e;
-            color: #fff;
-        }
-        .dashboard-content {
-            margin-left: 250px;
-            padding: 20px;
-        }
-        .course-card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-        .course-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        }
-        .profile-header {
-            background-color: #3498db;
-            color: white;
-            padding: 20px;
-            border-radius: 0 0 10px 10px;
-        }
-        .btn-custom {
-            background-color: #3498db;
-            color: white;
-        }
-        .btn-custom:hover {
-            background-color: #2980b9;
-            color: white;
-        }
-    </style>
+    <link href="assets/css/dish.css" rel="stylesheet">
 </head>
 <body>
     <div class="container-fluid">

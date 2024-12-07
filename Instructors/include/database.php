@@ -16,8 +16,7 @@ class DatabaseConnection {
             throw new Exception("Database connection failed: " . $this->conn->connect_error);
         }
     }
-
-    
+   
     public function sanitizeInput($input) {
         
         $input = trim($input);
@@ -33,16 +32,13 @@ class DatabaseConnection {
         
         return $input;
     }
-
     public function getConnection() {
         return $this->conn;
     }
-
     public function closeConnection() {
         $this->conn->close();
     }
 }
-
 try {
     $database = new DatabaseConnection();
     $conn = $database->getConnection();
