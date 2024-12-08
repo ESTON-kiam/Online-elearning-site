@@ -12,7 +12,6 @@ if ($instructor_id) {
         $stmt->execute();
         $stmt->close();
     } else {
-        
         error_log("Error preparing the query: " . $conn->error);
     }
 }

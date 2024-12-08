@@ -3,11 +3,8 @@ session_name('instructor_session');
 session_start();
 
 require_once 'include/database.php';
-
-
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 15 * 60;
@@ -59,8 +56,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
-
-         
             if (!empty($user['password']) &&
                 (strlen($user['password']) > 20) &&
                 password_verify($password, $user['password'])) {

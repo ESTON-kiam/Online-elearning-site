@@ -13,7 +13,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $database = new DatabaseConnection(); 
     $conn = $database->getConnection(); 
 
-    
     $title = $database->sanitizeInput($_POST['title']);
     $description = $database->sanitizeInput($_POST['description']);
     $year_of_student = $database->sanitizeInput($_POST['year_of_student']);
@@ -72,8 +71,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link href="assets/css/add.css" rel="stylesheet">
 </head>
 <body>
-   
-
     <h1>Add New Course</h1>
  <?php
     if (!empty($errors)) {
