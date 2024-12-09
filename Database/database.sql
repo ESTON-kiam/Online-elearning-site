@@ -102,3 +102,18 @@ CREATE TABLE admin_remember_tokens (
 );
 
 
+CREATE TABLE course_activity_enrollments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    activity_id INT NOT NULL,
+    enrollment_date DATE DEFAULT CURRENT_DATE,
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    FOREIGN KEY (activity_id) REFERENCES course_activities(id)
+);
+
+ALTER TABLE course_activities
+ADD COLUMN activity_name VARCHAR(255) NOT NULL,
+ADD COLUMN activity_date DATE NOT NULL,
+ADD COLUMN activity_time TIME NOT NULL,
+ADD COLUMN location VARCHAR(255),
+ADD COLUMN description TEXT;

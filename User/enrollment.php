@@ -1,13 +1,10 @@
 <?php
-
-
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 require 'PHPMailer/PHPMailer/src/Exception.php';
 require 'PHPMailer/PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/PHPMailer/src/SMTP.php';
-
 
 require 'vendor/autoload.php';
 session_name('student_session');
@@ -20,14 +17,11 @@ if (!isset($_SESSION['student_id'])) {
 
 require_once 'include/database.php';
 
-
 $student_id = $_SESSION['student_id'];
-
 
 if (isset($_GET['course_id'])) {
     $course_id = $_GET['course_id'];
 
-    
     $check_enrollment_query = "SELECT * FROM enrollments WHERE student_id = ? AND course_id = ?";
     $stmt = $conn->prepare($check_enrollment_query);
     $stmt->bind_param("ii", $student_id, $course_id);
@@ -35,10 +29,8 @@ if (isset($_GET['course_id'])) {
     $enrollment_result = $stmt->get_result();
 
     if ($enrollment_result->num_rows > 0) {
-       
         $message = "You are already enrolled in this course!";
     } else {
-       
         $enrollment_query = "INSERT INTO enrollments (student_id, course_id) VALUES (?, ?)";
         $stmt = $conn->prepare($enrollment_query);
         $stmt->bind_param("ii", $student_id, $course_id);
@@ -47,7 +39,6 @@ if (isset($_GET['course_id'])) {
         if ($stmt->affected_rows > 0) {
             $message = "Successfully enrolled in the course!";
 
-            
             $student_query = "SELECT * FROM students WHERE id = ?";
             $stmt = $conn->prepare($student_query);
             $stmt->bind_param("i", $student_id);
@@ -55,7 +46,6 @@ if (isset($_GET['course_id'])) {
             $student_result = $stmt->get_result();
             $student = $student_result->fetch_assoc();
 
-            
             $course_query = "SELECT * FROM courses WHERE id = ?";
             $stmt = $conn->prepare($course_query);
             $stmt->bind_param("i", $course_id);
@@ -63,29 +53,24 @@ if (isset($_GET['course_id'])) {
             $course_result = $stmt->get_result();
             $course = $course_result->fetch_assoc();
 
-           
             $mail = new PHPMailer(true);
             try {
-                
                 $mail->isSMTP();
                 $mail->Host       = 'smtp.gmail.com';                   
-            $mail->SMTPAuth   = true;                                
-            $mail->Username   = 'engestonbrandon@gmail.com';            
-            $mail->Password   = 'dsth izzm npjl qebi';                    
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;     
-            $mail->Port       = 587; 
+                $mail->SMTPAuth   = true;                                
+                $mail->Username   = 'engestonbrandon@gmail.com';            
+                $mail->Password   = 'dsth izzm npjl qebi';                    
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;     
+                $mail->Port       = 587; 
 
-               
                 $mail->setFrom('your-email@gmail.com', 'Course Enrollment');
                 $mail->addAddress($student['email'], $student['username']); 
 
-             
                 $mail->isHTML(true);
                 $mail->Subject = 'Course Enrollment Confirmation';
                 $mail->Body    = "<h1>Enrollment Successful</h1>
                                   <p>Hello, " . htmlspecialchars($student['username']) . ",</p>
                                   <p>You have successfully enrolled in the course: <strong>" . htmlspecialchars($course['title']) . "</strong></p>
-                                 
                                   <p><strong>Course Description:</strong> " . htmlspecialchars($course['description']) . "</p>
                                   <p><strong>Price:</strong> KES " . number_format($course['price'], 2) . "</p>
                                   <p>Thank you for choosing our platform for your learning journey!</p>";
@@ -102,6 +87,8 @@ if (isset($_GET['course_id'])) {
     $message = "No course selected.";
 }
 
+
+$search_term = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 $courses_query = "
     SELECT 
@@ -129,10 +116,18 @@ $courses_query = "
             FROM enrollments e 
             WHERE e.course_id = c.id AND e.student_id = ?
         )
+        " . (!empty($search_term) ? "AND (c.title LIKE ? OR c.description LIKE ?)" : "") . "
 ";
 
 $stmt = $conn->prepare($courses_query);
-$stmt->bind_param("i", $student_id);
+
+if (!empty($search_term)) {
+    $search_param = "%{$search_term}%";
+    $stmt->bind_param("iss", $student_id, $search_param, $search_param);
+} else {
+    $stmt->bind_param("i", $student_id);
+}
+
 $stmt->execute();
 $courses_result = $stmt->get_result();
 ?>
@@ -143,13 +138,10 @@ $courses_result = $stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course Enrollment</title>
-
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/css/enroll.css" rel="stylesheet">
 </head>
-
 <body>
     <div id="mainContent" class="main-content">
         <header class="dashboard-header">
@@ -164,9 +156,31 @@ $courses_result = $stmt->get_result();
                 <div class="alert alert-info"><?php echo $message; ?></div>
             <?php endif; ?>
 
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <form method="get" action="" class="d-flex">
+                        <input 
+                            type="search" 
+                            name="search" 
+                            class="form-control me-2" 
+                            placeholder="Search courses by title or description" 
+                            value="<?php echo htmlspecialchars($search_term); ?>"
+                        >
+                        <button type="submit" class="btn btn-primary">Search</button>
+                        <?php if (!empty($search_term)): ?>
+                            <a href="enrollment.php" class="btn btn-secondary ms-2">Clear</a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-md-12">
-                    <h2 class="mb-4">Available Courses</h2>
+                    <h2 class="mb-4">Available Courses 
+                        <?php if (!empty($search_term)): ?>
+                            <small class="text-muted">- Search results for "<?php echo htmlspecialchars($search_term); ?>"</small>
+                        <?php endif; ?>
+                    </h2>
                     <?php if ($courses_result->num_rows > 0): ?>
                         <?php while ($course = $courses_result->fetch_assoc()): ?>
                             <div class="course-card p-3 mb-3">
@@ -187,7 +201,15 @@ $courses_result = $stmt->get_result();
                             </div>
                         <?php endwhile; ?>
                     <?php else: ?>
-                        <div class="alert alert-info">No courses available for enrollment at the moment.</div>
+                        <div class="alert alert-info">
+                            <?php 
+                            if (!empty($search_term)) {
+                                echo "No courses found matching your search: \"" . htmlspecialchars($search_term) . "\"";
+                            } else {
+                                echo "No courses available for enrollment at the moment.";
+                            }
+                            ?>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -197,7 +219,6 @@ $courses_result = $stmt->get_result();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            
             const enrollButtons = document.querySelectorAll('.enroll-btn');
             
             enrollButtons.forEach(button => {
@@ -207,12 +228,15 @@ $courses_result = $stmt->get_result();
                     const courseId = this.getAttribute('data-course-id');
                     const courseTitle = this.getAttribute('data-course-title');
                     
-                    
                     const confirmEnroll = confirm(`Are you sure you want to enroll in the course: ${courseTitle}?`);
                     
                     if (confirmEnroll) {
+                        const searchParam = new URLSearchParams(window.location.search).get('search');
+                        const redirectUrl = searchParam 
+                            ? `enrollment.php?course_id=${courseId}&search=${encodeURIComponent(searchParam)}` 
+                            : `enrollment.php?course_id=${courseId}`;
                         
-                        window.location.href = `enrollment.php?course_id=${courseId}`;
+                        window.location.href = redirectUrl;
                     }
                 });
             });

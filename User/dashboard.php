@@ -17,6 +17,30 @@ $stmt->execute();
 $student_result = $stmt->get_result();
 $student = $student_result->fetch_assoc();
 
+
+$activities_query = "
+    SELECT 
+        a.activity_name, 
+        a.activity_date, 
+        a.activity_time, 
+        a.location,
+        a.description
+    FROM 
+        course_activities a
+    JOIN 
+        course_activity_enrollments sae ON a.id = sae.activity_id
+    WHERE 
+        sae.student_id = ? 
+        AND a.activity_date >= CURDATE()
+    ORDER BY 
+        a.activity_date ASC, 
+        a.activity_time ASC
+    LIMIT 5";
+$stmt = $conn->prepare($activities_query);
+$stmt->bind_param("i", $student_id);
+$stmt->execute();
+$activities_result = $stmt->get_result();
+
 $enrolled_courses_query = "
     SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name
     FROM courses c
@@ -54,6 +78,24 @@ $available_courses_result = $stmt->get_result();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/css/dash.css" rel="stylesheet">
     
+    <style>
+        .activity-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-date {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .activity-location {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 
 <body>
@@ -113,12 +155,39 @@ $available_courses_result = $stmt->get_result();
         <div class="container dashboard-section">
             <div class="row">
                 <div class="col-md-4">
-                    <div class="profile-card">
-                        <h3 class="mb-4">Profile Details</h3>
-                        <p><strong>Username:</strong> <?php echo htmlspecialchars($student['username']); ?></p>
-                        <p><strong>Email:</strong> <?php echo htmlspecialchars($student['email']); ?></p>
-                        <p><strong>Phone:</strong> <?php echo htmlspecialchars($student['phone_number'] ?? 'Not provided'); ?></p>
-                        <a href="profile.php" class="btn btn-custom mt-3">Edit Profile</a>
+                    <div class="activities-card">
+                        <h3 class="mb-4">Upcoming Activities</h3>
+                        <?php if ($activities_result->num_rows > 0): ?>
+                            <?php while ($activity = $activities_result->fetch_assoc()): ?>
+                                <div class="activity-item">
+                                    <h5><?php echo htmlspecialchars($activity['activity_name']); ?></h5>
+                                    <p class="activity-date">
+                                        <i class="bi bi-calendar me-2"></i>
+                                        <?php 
+                                        $date = new DateTime($activity['activity_date']);
+                                        echo $date->format('F j, Y');
+                                        ?> 
+                                        <br>
+                                        <i class="bi bi-clock me-2"></i>
+                                        <?php 
+                                        $time = new DateTime($activity['activity_time']);
+                                        echo $time->format('h:i A');
+                                        ?>
+                                    </p>
+                                    <p class="activity-location">
+                                        <i class="bi bi-geo-alt me-2"></i>
+                                        <?php echo htmlspecialchars($activity['location']); ?>
+                                    </p>
+                                    <?php if (!empty($activity['description'])): ?>
+                                        <p class="text-muted small"><?php echo htmlspecialchars($activity['description']); ?></p>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endwhile; ?>
+                            <a href="activities.php" class="btn btn-custom mt-3">View All Activities</a>
+                        <?php else: ?>
+                            <p class="text-muted">No upcoming activities.</p>
+                            <a href="activities.php" class="btn btn-custom mt-3">Explore Activities</a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
