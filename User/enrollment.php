@@ -104,13 +104,33 @@ if (isset($_GET['course_id'])) {
 
 
 $courses_query = "
-    SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name,
-    (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id) AS enrolled_count
-    FROM courses c
-    JOIN course_instructors ci ON c.id = ci.course_id
-    JOIN instructors i ON ci.instructor_id = i.id
-    WHERE c.is_active = 1 AND 
-    c.id NOT IN (SELECT course_id FROM enrollments WHERE student_id = ?)";
+    SELECT 
+        c.id, 
+        c.title, 
+        c.description, 
+        c.YearOfStudent, 
+        c.price, 
+        i.name AS instructor_name,
+        (
+            SELECT COUNT(*) 
+            FROM enrollments e 
+            WHERE e.course_id = c.id
+        ) AS enrolled_count
+    FROM 
+        courses c
+    JOIN 
+        course_instructors ci ON c.id = ci.course_id
+    JOIN 
+        instructors i ON ci.instructor_id = i.id
+    WHERE 
+        c.is_active = 1 
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM enrollments e 
+            WHERE e.course_id = c.id AND e.student_id = ?
+        )
+";
+
 $stmt = $conn->prepare($courses_query);
 $stmt->bind_param("i", $student_id);
 $stmt->execute();

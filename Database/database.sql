@@ -10,6 +10,7 @@ CREATE TABLE admin (
     role ENUM('super_admin') DEFAULT 'super_admin',
     profile_image VARCHAR(255),
     last_login DATETIME,
+    last_logout Datetime,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -47,6 +48,8 @@ CREATE TABLE instructors (
     password VARCHAR(255) NOT NULL,
     expertise VARCHAR(255),
     bio TEXT,
+    last_login Datetime,
+    last_logout Datetime,
     profile_image VARCHAR(255),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -68,6 +71,7 @@ CREATE TABLE course_instructors (
 ALTER TABLE instructors
 add COLUMN last_login Datetime,
 add COLUMN last_logout Datetime;
+
 CREATE TABLE students (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -75,7 +79,9 @@ CREATE TABLE students (
     last_name VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(20)
+    phone_number VARCHAR(20),
+    last_login DATETIME,
+    last_logout DATETIME,
 );
 ALTER TABLE courses 
 ADD COLUMN allocation_status ENUM('pending', 'allocated') DEFAULT 'pending';

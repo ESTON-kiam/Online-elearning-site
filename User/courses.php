@@ -95,7 +95,7 @@ $courses_result = $conn->query($courses_query);
                                 <span class="text-muted">Instructor: <?php echo htmlspecialchars($course['instructor_name']); ?></span>
                                 <span class="fw-bold">KES<?php echo number_format($course['price'], 2); ?></span>
                             </div>
-                            <a href="enroll.php?course_id=<?php echo $course['id']; ?>" class="btn btn-custom mt-3">Enroll Now</a>
+                            <a href="enrollment.php?course_id=<?php echo $course['id']; ?>" class="btn btn-custom mt-3">Enroll Now</a>
                         </div>
                     </div>
                 <?php endwhile; ?>

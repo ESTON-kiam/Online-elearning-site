@@ -17,12 +17,25 @@ $stmt->execute();
 $instructor_result = $stmt->get_result();
 $instructor = $instructor_result->fetch_assoc();
 
-$courses_query = "SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, c.is_active,
-                         COUNT(DISTINCT ci.id) AS enrolled_students
-                  FROM courses c
-                  JOIN course_instructors ci ON c.id = ci.course_id
-                  WHERE ci.instructor_id = ?
-                  GROUP BY c.id";
+$courses_query = "
+    SELECT 
+        c.id, 
+        c.title, 
+        c.description, 
+        c.YearOfStudent, 
+        c.price, 
+        c.is_active,
+        COUNT(DISTINCT e.student_id) AS enrolled_students
+    FROM 
+        courses c
+    LEFT JOIN 
+        enrollments e ON c.id = e.course_id
+    WHERE 
+        EXISTS (SELECT 1 FROM course_instructors ci WHERE ci.course_id = c.id AND ci.instructor_id = ?)
+    GROUP BY 
+        c.id
+";
+
 $stmt = $conn->prepare($courses_query);
 $stmt->bind_param("i", $instructor_id);
 $stmt->execute();
@@ -57,11 +70,7 @@ $courses_result = $stmt->get_result();
                                 <i class="fas fa-tachometer-alt me-2"></i>  Dashboard
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="create_course.php">
-                                <i class="fas fa-plus-circle me-2"></i> Create Course
-                            </a>
-                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link" href="edit_profile.php">
                                 <i class="fas fa-user-edit me-2"></i> Edit Profile
@@ -92,9 +101,7 @@ $courses_result = $stmt->get_result();
                     <div class="col-12">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h2 class="h3">Courses Allocated TO</h2>
-                            <a href="create_course.php" class="btn btn-custom">
-                                <i class="fas fa-plus me-2"></i> Create New Course
-                            </a>
+                            
                         </div>
                         
                         <?php if ($courses_result->num_rows > 0): ?>
@@ -130,8 +137,8 @@ $courses_result = $stmt->get_result();
                         <?php else: ?>
                             <div class="alert alert-info">
                                 <i class="fas fa-info-circle me-2"></i>
-                                You haven't created any courses yet. 
-                                <a href="create_course.php" class="alert-link">Create your first course</a>
+                                You haven't Been allocated to any course Contact the admin. 
+                               
                             </div>
                         <?php endif; ?>
                     </div>
