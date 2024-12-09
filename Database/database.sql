@@ -83,8 +83,14 @@ CREATE TABLE students (
     last_login DATETIME,
     last_logout DATETIME,
 );
+ALTER TABLE students 
+ADD COLUMN current_session_token VARCHAR(255) NULL,
+ADD COLUMN last_login_time DATETIME NULL,
+ADD COLUMN is_logged_in BOOLEAN DEFAULT FALSE;
+
 ALTER TABLE courses 
 ADD COLUMN allocation_status ENUM('pending', 'allocated') DEFAULT 'pending';
+
 CREATE TABLE admin_remember_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
     admin_id INT NOT NULL,

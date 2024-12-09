@@ -149,4 +149,17 @@
                 display: block;
             }
         }
+       
+        #login-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            display: none;
+        }
    

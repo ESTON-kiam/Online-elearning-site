@@ -17,7 +17,6 @@ $stmt->execute();
 $student_result = $stmt->get_result();
 $student = $student_result->fetch_assoc();
 
-
 $enrolled_courses_query = "
     SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name
     FROM courses c
@@ -29,7 +28,6 @@ $stmt = $conn->prepare($enrolled_courses_query);
 $stmt->bind_param("i", $student_id);
 $stmt->execute();
 $enrolled_courses_result = $stmt->get_result();
-
 
 $available_courses_query = "
     SELECT c.id, c.title, c.description, c.YearOfStudent, c.price, i.name AS instructor_name
@@ -51,15 +49,24 @@ $available_courses_result = $stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard</title>
-
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/css/dash.css" rel="stylesheet">
+    
 </head>
 
 <body>
-    
+   
+    <?php if (isset($_SESSION['login_message'])): ?>
+        <div id="login-message" class="alert alert-success">
+            <?php 
+            echo htmlspecialchars($_SESSION['login_message']); 
+            unset($_SESSION['login_message']); 
+            ?>
+        </div>
+    <?php endif; ?>
+
     <button id="sidebarToggle" class="toggle-sidebar">
         <i class="bi bi-list"></i>
     </button>
@@ -116,19 +123,20 @@ $available_courses_result = $stmt->get_result();
                 </div>
 
                 <div class="col-md-8">
-    <?php if ($enrolled_courses_result->num_rows > 0): ?>
-        <h2 class="mb-4">My Courses</h2>
-        <?php while ($course = $enrolled_courses_result->fetch_assoc()): ?>
-            <a href="resources.php?course_id=<?php echo $course['id']; ?>" class="text-decoration-none">
-                <div class="course-card p-3 mb-3">
-                    <h4><?php echo htmlspecialchars($course['title']); ?></h4>
-                    <p><?php echo htmlspecialchars($course['description']); ?></p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-primary"><?php echo htmlspecialchars($course['YearOfStudent']); ?> Year</span>
-                        <span class="text-muted">Instructor: <?php echo htmlspecialchars($course['instructor_name']); ?></span>
-                        <span class="fw-bold">KES<?php echo number_format($course['price'], 2); ?></span>
-                    </div>
-                            </div>
+                    <?php if ($enrolled_courses_result->num_rows > 0): ?>
+                        <h2 class="mb-4">My Courses</h2>
+                        <?php while ($course = $enrolled_courses_result->fetch_assoc()): ?>
+                            <a href="resources.php?course_id=<?php echo $course['id']; ?>" class="text-decoration-none">
+                                <div class="course-card p-3 mb-3">
+                                    <h4><?php echo htmlspecialchars($course['title']); ?></h4>
+                                    <p><?php echo htmlspecialchars($course['description']); ?></p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-primary"><?php echo htmlspecialchars($course['YearOfStudent']); ?> Year</span>
+                                        <span class="text-muted">Instructor: <?php echo htmlspecialchars($course['instructor_name']); ?></span>
+                                        <span class="fw-bold">KES<?php echo number_format($course['price'], 2); ?></span>
+                                    </div>
+                                </div>
+                            </a>
                         <?php endwhile; ?>
                     <?php else: ?>
                         <?php if ($available_courses_result->num_rows > 0): ?>
@@ -150,6 +158,7 @@ $available_courses_result = $stmt->get_result();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
             const sidebarToggle = document.getElementById('sidebarToggle');
@@ -158,6 +167,16 @@ $available_courses_result = $stmt->get_result();
                 sidebar.classList.toggle('sidebar-mini');
                 mainContent.classList.toggle('main-content-full');
             });
+
+            const loginMessage = document.getElementById('login-message');
+            if (loginMessage) {
+                loginMessage.style.display = 'block';
+                
+                
+                setTimeout(function() {
+                    loginMessage.style.display = 'none';
+                }, 10000);
+            }
         });
     </script>
 </body>
