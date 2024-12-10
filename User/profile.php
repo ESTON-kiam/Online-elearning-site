@@ -114,9 +114,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <form method="POST" enctype="multipart/form-data">
                 <div class="text-center mb-4">
-                    <img src="Userprof/<?php echo $student['profile_image'] ? htmlspecialchars($student['profile_image']) : 'default-profile.png'; ?>" 
-                         alt="Profile Image" 
-                         class="profile-image mb-3">
+                <img src="Userprof/<?php echo htmlspecialchars($student['profile_image']) ?: 'default-profile.png'; ?>" 
+     alt="Profile Image" 
+     class="profile-image mb-3">
+
                     <div class="mb-3">
                         <label for="profile_image" class="form-label">Change Profile Picture</label>
                         <input type="file" id="profile_image" name="profile_image" class="form-control" accept="image/jpeg,image/png,image/gif">
