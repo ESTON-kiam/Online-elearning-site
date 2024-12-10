@@ -17,7 +17,6 @@ if (!isset($_GET['course_id']) || !is_numeric($_GET['course_id'])) {
 $student_id = $_SESSION['student_id'];
 $course_id = $_GET['course_id'];
 
-
 $enrollment_check_query = "SELECT * FROM enrollments WHERE student_id = ? AND course_id = ?";
 $stmt = $conn->prepare($enrollment_check_query);
 $stmt->bind_param("ii", $student_id, $course_id);
@@ -28,7 +27,6 @@ if ($enrollment_result->num_rows == 0) {
     header("Location: dashboard.php");
     exit();
 }
-
 
 $course_query = "SELECT c.title, c.description, i.name AS instructor_name 
                  FROM courses c 
@@ -41,7 +39,6 @@ $stmt->execute();
 $course_result = $stmt->get_result();
 $course = $course_result->fetch_assoc();
 
-
 $activities_query = "SELECT id, title, description, due_date, type 
                      FROM course_activities 
                      WHERE course_id = ? 
@@ -51,7 +48,6 @@ $stmt->bind_param("i", $course_id);
 $stmt->execute();
 $activities_result = $stmt->get_result();
 
-
 $notes_query = "SELECT id, title, file_path, upload_date 
                 FROM course_notes 
                 WHERE course_id = ? 
@@ -60,7 +56,6 @@ $stmt = $conn->prepare($notes_query);
 $stmt->bind_param("i", $course_id);
 $stmt->execute();
 $notes_result = $stmt->get_result();
-
 
 $submitted_activities_query = "SELECT activity_id 
                                 FROM student_submissions 
@@ -74,11 +69,9 @@ while ($row = $submitted_activities_result->fetch_assoc()) {
     $submitted_activities[] = $row['activity_id'];
 }
 
-
 $grades_query = "SELECT 
                     a.title AS activity_title, 
                     ss.grade 
-                    
                 FROM student_submissions ss
                 JOIN course_activities a ON ss.activity_id = a.id
                 WHERE ss.student_id = ? AND ss.course_id = ?";
@@ -98,7 +91,6 @@ while ($grade_row = $grades_result->fetch_assoc()) {
 }
 
 $overall_percentage = $total_points > 0 ? round(($earned_points / $total_points) * 100, 2) : 0;
-
 
 function calculateLetterGrade($percentage) {
     if ($percentage >= 90) return 'A';
@@ -188,7 +180,7 @@ $letter_grade = calculateLetterGrade($overall_percentage);
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
+           
             <div class="col-md-3 col-lg-2 sidebar">
                 <div class="d-flex flex-column h-100">
                     <a href="dashboard.php" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
@@ -217,7 +209,6 @@ $letter_grade = calculateLetterGrade($overall_percentage);
                 </div>
             </div>
 
-            <!-- Main Content -->
             <div class="col-md-9 ms-sm-auto col-lg-10 main-content">
                 <div class="course-header text-center">
                     <div class="container">
@@ -247,12 +238,8 @@ $letter_grade = calculateLetterGrade($overall_percentage);
                                                     </div>
                                                     <span class="badge bg-primary rounded-pill"><?php echo htmlspecialchars($activity['type']); ?></span>
                                                 </div>
-                                                <?php if (!in_array($activity['id'], $submitted_activities)): ?>
-                                                    <a href="submit_activity.php?activity_id=<?php echo $activity['id']; ?>&course_id=<?php echo $course_id; ?>" 
-                                                       class="btn btn-submit text-white btn-sm mt-2">Submit Activity</a>
-                                                <?php else: ?>
-                                                    <span class="badge bg-success mt-2">Submitted</span>
-                                                <?php endif; ?>
+                                                <a href="activity_details.php?activity_id=<?php echo $activity['id']; ?>&course_id=<?php echo $course_id; ?>" 
+                                                   class="btn btn-primary text-white btn-sm mt-2">View Activity</a>
                                             </div>
                                         <?php endwhile; ?>
                                         </div>
@@ -290,7 +277,7 @@ $letter_grade = calculateLetterGrade($overall_percentage);
                             </div>
                         </div>
 
-                        <!-- Grades Details Column -->
+                        
                         <div class="col-md-4">
                             <div class="card card-custom mb-4">
                                 <div class="card-header bg-primary text-white">

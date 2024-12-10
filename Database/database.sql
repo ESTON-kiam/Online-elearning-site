@@ -117,3 +117,19 @@ ADD COLUMN activity_date DATE NOT NULL,
 ADD COLUMN activity_time TIME NOT NULL,
 ADD COLUMN location VARCHAR(255),
 ADD COLUMN description TEXT;
+
+
+ALTER TABLE course_activities
+ADD COLUMN max_points INT;
+
+
+CREATE TABLE multiple_choice_questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    activity_id INT NOT NULL,
+    question TEXT NOT NULL,
+    options JSON NOT NULL,
+    correct_answer VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (activity_id) REFERENCES course_activities(id) ON DELETE CASCADE
+);

@@ -166,9 +166,8 @@ $submissions_result = $stmt->get_result();
     </style>
 </head>
 <body>
-    <div class="container-fluid">
+<div class="container-fluid">
         <div class="row">
-           
             <div class="col-md-3 col-lg-2 sidebar p-0">
                 <div class="d-flex flex-column h-100 p-3">
                     <a href="dashboard.php" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
@@ -188,7 +187,7 @@ $submissions_result = $stmt->get_result();
                             </a>
                         </li>
                         <li>
-                            <a href="course_analytics.php?course_id=<?php echo $course_id; ?>" class="nav-link text-white">
+                            <a href="analytics.php?course_id=<?php echo $course_id; ?>" class="nav-link text-white">
                                 <i class="bi bi-graph-up me-2"></i>Course Analytics
                             </a>
                         </li>
@@ -202,7 +201,6 @@ $submissions_result = $stmt->get_result();
                 </div>
             </div>
 
-            
             <div class="col-md-9 ms-sm-auto col-lg-10 main-content">
                 <div class="course-header text-center">
                     <div class="container">
@@ -213,9 +211,8 @@ $submissions_result = $stmt->get_result();
 
                 <div class="container-fluid">
                     <div class="row">
-                        
                         <div class="col-md-8">
-                         
+                            <!-- Course Activities Card -->
                             <div class="card card-custom mb-4">
                                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                                     <h2 class="mb-0"><i class="bi bi-list-task me-2"></i>Course Activities</h2>
@@ -228,10 +225,34 @@ $submissions_result = $stmt->get_result();
                                         </a>
                                     </div>
                                 </div>
-                                
+                                <div class="card-body">
+                                    <?php if ($activities_result->num_rows > 0): ?>
+                                        <div class="list-group">
+                                        <?php while ($activity = $activities_result->fetch_assoc()): ?>
+                                            <div class="list-group-item list-group-item-action clickable-row" 
+                                                 data-activity-id="<?php echo $activity['id']; ?>">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h5 class="mb-1"><?php echo htmlspecialchars($activity['title']); ?></h5>
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-calendar me-1"></i>
+                                                        Due: <?php echo date('F j, Y', strtotime($activity['due_date'])); ?>
+                                                    </small>
+                                                </div>
+                                                <p class="mb-1"><?php echo htmlspecialchars($activity['description']); ?></p>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-check-circle me-1"></i>
+                                                    Submissions: <?php echo $activity['submission_count']; ?>
+                                                </small>
+                                            </div>
+                                        <?php endwhile; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <p class="text-center text-muted">No activities created yet.</p>
+                                    <?php endif; ?>
+                                </div>
                             </div>
 
-                            
+                            <!-- Course Notes Card -->
                             <div class="card card-custom mb-4">
                                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                                     <h2 class="mb-0"><i class="bi bi-folder me-2"></i>Course Notes</h2>
@@ -244,10 +265,33 @@ $submissions_result = $stmt->get_result();
                                         </a>
                                     </div>
                                 </div>
-                                
+                                <div class="card-body">
+                                    <?php if ($notes_result->num_rows > 0): ?>
+                                        <div class="list-group">
+                                        <?php while ($note = $notes_result->fetch_assoc()): ?>
+                                            <div class="list-group-item list-group-item-action clickable-row" 
+                                                 data-note-path="<?php echo htmlspecialchars($note['file_path']); ?>">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h5 class="mb-1"><?php echo htmlspecialchars($note['title']); ?></h5>
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-calendar me-1"></i>
+                                                        <?php echo date('F j, Y', strtotime($note['upload_date'])); ?>
+                                                    </small>
+                                                </div>
+                                                <p class="mb-1">
+                                                    <i class="bi bi-file-earmark me-1"></i>
+                                                    <?php echo htmlspecialchars($note['file_type']); ?> | 
+                                                    <?php echo number_format($note['file_size'] / 1024, 2); ?> KB
+                                                </p>
+                                            </div>
+                                        <?php endwhile; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <p class="text-center text-muted">No notes uploaded yet.</p>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
-
                        
                         <div class="col-md-4">
                             <div class="card card-custom mb-4">
